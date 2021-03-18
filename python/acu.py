@@ -94,6 +94,12 @@ class AcuHttpInterface:
             'GET', self.base_url + '/Meta', {})
         return self.backend(req)
 
+    def Version(self):
+        """Query the "Version" Plugin.  Takes no parameters, returns line format."""
+        req = soaculib.http.HttpRequest(
+            'GET', self.base_url + '/Version', {})
+        return self.backend(req)
+
     def UploadPtStack(self, points, filename=None, type_='File', suffix='\r\n'):
         if filename is None:
             filename = 'UploadedFromBrowser'
