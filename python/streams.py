@@ -1,4 +1,4 @@
-import aculib
+import soaculib
 
 # As is the case for AcuControl, the public interface for
 # BroadcastStreamControls will be created on instantiation by
@@ -23,7 +23,7 @@ class BroadcastStreamControl:
         (use 'guess' to load the config based on hostname).
 
         """
-        config = aculib.guess_config(config)
+        config = soaculib.guess_config(config)
         output = {}
         for name, stream_cfg in config.get('streams', {}).items():
             if not stream_cfg.get('active', True):
@@ -41,7 +41,7 @@ class BroadcastStreamControl:
         """
         # Decode configs.
         if isinstance(config, str):
-            config = aculib.guess_config(config)
+            config = soaculib.guess_config(config)
         if isinstance(stream_config, str):
             stream_name = stream_config
             stream_config = config['streams'][stream_name]
@@ -61,9 +61,9 @@ class BroadcastStreamControl:
         }
         # If config specifies schema by name, replace it with dict.
         if isinstance(self.p['schema'], str):
-            self.p['schema'] = aculib.get_stream_schema(self.p['schema'])
+            self.p['schema'] = soaculib.get_stream_schema(self.p['schema'])
 
-        backend = aculib.get_backend(backend)
+        backend = soaculib.get_backend(backend)
         self.http = ModularHttpInterface(
             self.p['dev_url'], backend=backend)
 
@@ -109,13 +109,13 @@ class BroadcastStreamControl:
         """
         # Chapter 0 is "Actual Values"
         text = yield self.http.Get(self.p['module'], '0')
-        te = aculib.util.TableExtractor()
+        te = soaculib.util.TableExtractor()
         te.feed(text)
         results = te.simple_search(['Running'], 0, 1)
 
         # Chapter 1 is "Parameters"
         text = yield self.http.Get(self.p['module'], '1')
-        te = aculib.util.TableExtractor()
+        te = soaculib.util.TableExtractor()
         te.feed(text)
         results.update(te.simple_search(['Port', 'Destination'], 0, 1))
 
@@ -162,21 +162,21 @@ class ModularHttpInterface:
     def __init__(self, base_url, backend=None):
         self.base_url = base_url
         if backend is None:
-            backend = aculib.DebuggingBackend()
+            backend = soaculib.DebuggingBackend()
         self.backend = backend
 
     def Get(self, module, chapter=None):
         params = {'Module': module}
         if chapter is not None:
             params['Chapter'] = chapter
-        req = aculib.http.HttpRequest('GET', self.base_url + '/', params)
+        req = soaculib.http.HttpRequest('GET', self.base_url + '/', params)
         return self.backend(req)
 
     def Post(self, data, module, chapter=None):
         params = {'Module': module}
         if chapter is not None:
             params['Chapter'] = chapter
-        req = aculib.http.HttpRequest('POST', self.base_url + '/', params, data)
+        req = soaculib.http.HttpRequest('POST', self.base_url + '/', params, data)
         return self.backend(req)
 
 

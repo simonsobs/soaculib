@@ -1,4 +1,4 @@
-import aculib
+import soaculib
 
 class _Backend:
     """Backend interface.  Abstract Base Class."""
@@ -19,10 +19,10 @@ def get_backend(backend=None):
     if isinstance(backend, _Backend):
         return backend
     if backend is None or backend == 'standard':
-        return aculib.StandardBackend()
+        return soaculib.StandardBackend()
     if backend == 'twisted':
-        from aculib.twisted_backend import TwistedHttpBackend
+        from soaculib.twisted_backend import TwistedHttpBackend
         return TwistedHttpBackend()
     if backend == 'debug':
-        return aculib.DebuggingBackend()
+        return soaculib.DebuggingBackend()
     raise ValueError("Unknown backend request: %s" % backend)

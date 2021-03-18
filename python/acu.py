@@ -1,7 +1,7 @@
-import aculib
+import soaculib
 import enum
 
-from aculib import http
+from soaculib import http
 
 class ValuesType(enum.Enum):
     Actual = 'Actual'
@@ -40,13 +40,13 @@ class AcuHttpInterface:
     def __init__(self, base_url, backend=None):
         self.base_url = base_url
         if backend is None:
-            backend = aculib.DebuggingBackend()
+            backend = soaculib.DebuggingBackend()
         self.backend = backend
 
     def Values(self, identifier, type_='Actual', format_='JSON'):
         type_ = ValuesType(type_) # validate
         format_ = ValuesFormat(format_) # validate
-        req = aculib.http.HttpRequest(
+        req = soaculib.http.HttpRequest(
             'GET', self.base_url + '/Values', {
                 'identifier': identifier,
                 'type': type_.name,
@@ -63,12 +63,12 @@ class AcuHttpInterface:
         }
         if parameter is not None:
             http_params['parameter'] = parameter
-        req = aculib.http.HttpRequest(
+        req = soaculib.http.HttpRequest(
             'GET', self.base_url + '/Command', http_params)
         return self.backend(req)
 
     def Write(self, identifier, data):
-        req = aculib.http.HttpRequest(
+        req = soaculib.http.HttpRequest(
             'POST', self.base_url + '/Write',
             {'identifier': identifier}, data)
         return self.backend(req)
@@ -79,7 +79,7 @@ class AcuHttpInterface:
 
         """
         type_ = DocumentationType(type_) # validate
-        req = aculib.http.HttpRequest(
+        req = soaculib.http.HttpRequest(
             'GET', self.base_url + '/Documentation', {
                 'identifier': identifier,
                 'type': type_.name})
@@ -90,14 +90,14 @@ class AcuHttpInterface:
         describing the tree.
 
         """
-        req = aculib.http.HttpRequest(
+        req = soaculib.http.HttpRequest(
             'GET', self.base_url + '/Meta', {})
         return self.backend(req)
 
     def UploadPtStack(self, points, filename=None, type_='File', suffix='\r\n'):
         if filename is None:
             filename = 'UploadedFromBrowser'
-        req = aculib.http.HttpRequest(
+        req = soaculib.http.HttpRequest(
             'POST', self.base_url + '/UploadPtStack',{'Type':type_, 'filename':filename},
             data=points + suffix)
         return self.backend(req)
@@ -134,12 +134,12 @@ class AcuControl:
 
     """
     def __init__(self, config='guess', backend=None):
-        acu_config = aculib.guess_config(config)
+        acu_config = soaculib.guess_config(config)
         base_url = acu_config['base_url']
 
-        backend = aculib.get_backend(backend)
+        backend = soaculib.get_backend(backend)
         self.http = AcuHttpInterface(base_url, backend=backend)
-        self.streams = aculib.streams.BroadcastStreamControl.get_all(
+        self.streams = soaculib.streams.BroadcastStreamControl.get_all(
             acu_config, backend=backend)
 
         # Decorate all methods for the chosen backend.

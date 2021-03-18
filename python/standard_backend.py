@@ -1,11 +1,11 @@
-import aculib
+import soaculib
 
 import requests
 from functools import wraps
 import types
 
 
-class StandardBackend(aculib._Backend):
+class StandardBackend(soaculib._Backend):
     """HTTP backend that uses standard Python requests library."""
     def __init__(self):
         self.decorator = unyielding_decorator
