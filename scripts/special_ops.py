@@ -6,7 +6,7 @@ import struct
 import time
 import yaml
 
-import aculib
+import soaculib as aculib
 
 parser = argparse.ArgumentParser()
 # Add global options here...

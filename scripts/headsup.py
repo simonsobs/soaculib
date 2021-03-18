@@ -3,6 +3,8 @@ import curses
 import time, calendar
 import json
 
+import soaculib
+
 class Renderer(list):
     def __init__(self, height, width):
         self.height = height
@@ -91,7 +93,7 @@ def enrich(d, rec=None):
     return d
 
 #def main(stdscr, dataset='DataSets.StatusGeneral8100'):
-def main(stdscr, dataset='DataSets.StatusSATPDetailed8100'):
+def main(stdscr, acu, dataset='DataSets.StatusSATPDetailed8100'):
     curses.noecho()
     curses.cbreak()
     stdscr.keypad(True)
@@ -109,10 +111,10 @@ def main(stdscr, dataset='DataSets.StatusSATPDetailed8100'):
     while running:
         now = time.time()
         if now - query_t > min_query_period:
-            r = acu.request_values(dataset)
+            v = acu.Values(dataset)
             if R is None:
                 R = Renderer(*stdscr.getmaxyx())
-            data = enrich(ordered_json(r.text), rec=rec)
+            data = enrich(v, rec=rec)
             R.render(stdscr, data)
             rec.save_block(data)
             query_t = now
@@ -140,6 +142,5 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--dataset', default='DataSets.StatusGeneral8100', help='Dataset to monitor')
     args = parser.parse_args()
 
-    from acu import *
-    acu = AcuInterface()
-    curses.wrapper(main, args.dataset)
+    acu = soaculib.AcuControl()
+    curses.wrapper(main, acu, args.dataset)
