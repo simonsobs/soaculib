@@ -13,6 +13,8 @@ CONFIGS = {
     'nanten-db':   {
         # Address of the "remote" interface.
         'base_url': 'http://172.16.5.95:8100',
+        # Address of the read-only "remote" interface.
+        'readonly_url': 'http://172.16.5.95:8110',
         # Address of the "developer" interface.
         'dev_url': 'http://172.16.5.95:8080',
         # Local interface IP.
@@ -32,6 +34,10 @@ CONFIGS = {
                 'active': False,
             },
         },
+
+        # For dataset description (see _platforms).
+        'platform': 'satp',
+
         # Deprecated stream configs...
         'broadcaster_url': 'http://172.16.5.95:8080',
         'PositionBroadcast_target': '172.16.5.10:10000',
@@ -42,6 +48,8 @@ CONFIGS = {
     'ocs-acu-1': {
         # Address of the "remote" interface.
         'base_url': 'http://192.168.1.109:8100',
+        # Address of the read-only "remote" interface.
+        'readonly_url': 'http://192.168.1.109:8110',
         # Address of the "developer" interface.
         'dev_url': 'http://192.168.1.109:8080',
         # Local interface IP.
@@ -52,7 +60,7 @@ CONFIGS = {
             'main': {
                 'acu_name': 'PositionBroadcast',
                 'port': 10001,
-                'schema': 'v0'
+                'schema': 'v2'
             },
             'ext': {
                 'acu_name': 'PositionBroadcastExt',

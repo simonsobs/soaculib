@@ -137,9 +137,12 @@ class AcuControl:
     """High level interface to ACU platform control.
 
     """
-    def __init__(self, config='guess', backend=None):
+    def __init__(self, config='guess', backend=None, readonly=False):
         acu_config = soaculib.guess_config(config)
-        base_url = acu_config['base_url']
+        if readonly:
+            base_url = acu_config['readonly_url']
+        else:
+            base_url = acu_config['base_url']
 
         backend = soaculib.get_backend(backend)
         self.http = AcuHttpInterface(base_url, backend=backend)
