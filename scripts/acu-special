@@ -9,9 +9,12 @@ datasets, and querying version information.
 """
 
 import argparse
+import requests
 import socket
 import struct
+import subprocess
 import time
+import urllib
 import yaml
 
 import soaculib as aculib
@@ -29,6 +32,9 @@ subparsers = parser.add_subparsers(dest='command')
 bcast_p = argparse.ArgumentParser(add_help=False)
 bcast_p.add_argument('-s', '--stream', default=None)
 bcast_p.add_argument('-f', '--force', default=False, action='store_true')
+
+p = subparsers.add_parser('ping', help=
+                          "Check connections to the ACU.")
 
 p = subparsers.add_parser('bcast', help=
                           "Inspect current broadcast stream configs, "
@@ -114,7 +120,43 @@ def stream_safe_enable(stream, print_func=print):
     return True, ""
 
 
-if args.command == 'bcast':
+if args.command == 'ping':
+    acu_config = aculib.guess_config('guess')
+    url = acu_config['base_url'] # e.g. 'http://172.16.5.95:8100']
+    host = urllib.parse.urlparse(url).hostname
+    print(f'Pinging host at {host}')
+    p = subprocess.Popen(["/bin/ping", "-c1", "-w2", host],
+                         stdout=subprocess.PIPE)
+    p.communicate()
+    if p.returncode == 0:
+        print(f' -- host responded to ping.')
+    else:
+        print(f' -- WARNING - host did not respond to ping.')
+    print()
+
+    # Check main, readonly,  API.
+    for key, expected in [('base_url', 400),
+                          ('readonly_url', 400),
+                          ('dev_url', 200)]:
+        print(f'Trying http on {key} ...')
+        url = acu_config.get(key)
+        if url is None:
+            print(f' -- (url not configured)')
+            continue
+        print(f' -- trying {url}')
+        try:
+            t = requests.get(url + '/')
+        except requests.ConnectionError:
+            t = None
+        if t is None:
+            print(f' -- WARNING - could not connect.')
+        elif t.status_code == expected:
+            print(f' -- got expected HTTP response {t.status_code}')
+        else:
+            print(f' -- WARNING - got unexpected HTTP response {t.status_code}')
+        print()
+
+elif args.command == 'bcast':
     is_all_streams, target_streams = get_target_streams()
     if is_all_streams:
         print('Here is a summary of the %i known streams:\n' %
