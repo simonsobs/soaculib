@@ -1,0 +1,10 @@
+# requests backend
+requests
+
+# twisted backend
+twisted
+
+# docs
+sphinx
+sphinx-rtd-theme
+sphinx-argparse

@@ -1,7 +1,7 @@
 """Backend support for twisted asynchronous framework.
 
 """
-import aculib
+import soaculib
 
 from twisted.internet import reactor
 from twisted.internet.defer import (
@@ -13,7 +13,7 @@ import urllib.parse
 from io import BytesIO
 import json
 
-class TwistedHttpBackend(aculib._Backend):
+class TwistedHttpBackend(soaculib._Backend):
     """This backend returns a Deferred object from the execute() call.
     The final result will be decoded as usual.
 
