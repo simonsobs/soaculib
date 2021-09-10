@@ -101,6 +101,7 @@ class BroadcastStreamControl:
         from ['True', 'False'].
 
         The "cfg_check" has two entries:
+
         - 'target_ok' (bool): True if the Destination and Port agree
           with the expected configuration.
         - 'enabled' (bool): True if the stream output seems to be

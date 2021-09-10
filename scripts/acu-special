@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+USAGE = """acu-special
+
+This program may be used to perform various operations on the ACU,
+including setting up and testing the UDP broadcast streams, dumping
+datasets, and querying version information.
+
+"""
+
 import argparse
 import socket
 import struct
@@ -8,7 +16,7 @@ import yaml
 
 import soaculib as aculib
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(usage=USAGE)
 # Add global options here...
 
 subparsers = parser.add_subparsers(dest='command')

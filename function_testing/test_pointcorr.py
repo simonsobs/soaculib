@@ -1,4 +1,4 @@
-import aculib
+import soaculib
 import test_helpers as th
 import time
 import numpy as np
@@ -79,7 +79,7 @@ def banner(title):
     print('*' * 60)
     
 
-acu = aculib.AcuControl()
+acu = soaculib.AcuControl()
 
 banner('Check Datasets Present')
 
@@ -91,7 +91,7 @@ for dset in [
     try:
         v1 = acu.Values(dset)
         print('  Retrieved %-40s - %i keys' % (dset, len(v1)))
-    except aculib.http.HttpError as e:
+    except soaculib.http.HttpError as e:
         print('  ! Failed to retrieve %s' % dset)
         keep_going = False
 

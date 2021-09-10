@@ -1,8 +1,6 @@
 import soaculib
 import enum
 
-from soaculib import http
-
 class ValuesType(enum.Enum):
     Actual = 'Actual'
     Target = 'Target'
@@ -75,7 +73,7 @@ class AcuHttpInterface:
 
     def Documentation(self, identifier, type_='actual'):
         """Query the "Documentation" Plugin for the specified identifier (and
-        type_).  Returns an HTML table describing the module.
+        type).  Returns an HTML table describing the module.
 
         """
         type_ = DocumentationType(type_) # validate

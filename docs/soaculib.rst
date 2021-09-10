@@ -1,6 +1,8 @@
-========================
-aculib - class reference
-========================
+==========================
+soaculib - class reference
+==========================
+
+.. py:module:: soaculib
 
 AcuControl
 ==========
@@ -11,7 +13,7 @@ Note that the API is presented with underscore prefixes, but should be
 accessed without those prefixes, i.e. call **AcuControl.mode()** not
 AcuControl._mode().
 
-.. autoclass:: aculib.AcuControl
+.. autoclass:: AcuControl
    :undoc-members:
    :members: __init__,_mode,_go_to,_stop,_Values,_Command,_Write
 
@@ -19,7 +21,7 @@ AcuControl._mode().
 Mode (enum)
 ===========
 
-.. autoclass:: aculib.Mode
+.. autoclass:: Mode
    :undoc-members:
    :members:
 
@@ -27,20 +29,14 @@ Mode (enum)
 AcuHttpInterface
 ================
 
-.. autoclass:: aculib.AcuHttpInterface
+.. autoclass:: AcuHttpInterface
    :undoc-members:
    :members: __init__,Values,Command,Write,Documentation,Meta
 
 PositionBroadcast
 =================
 
-.. autoclass:: aculib.PositionBroadcastControl
+.. autoclass:: BroadcastStreamControl
    :undoc-members:
-   :members: _enable,_set_udp_ip,_set_udp_port,_set_udp
-
-
-.. autoclass:: aculib.PositionBroadcastExtControl
-   :undoc-members:
-   :members: _enable,_set_udp_ip,_set_udp_port,_set_udp
-
+   :members: _enable,_set_destination,_set_port,_set_config,_get_status
 

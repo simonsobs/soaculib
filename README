@@ -1,5 +1,0 @@
-Pretty sure you should install with::
-
- pip install .
-
-because conda.

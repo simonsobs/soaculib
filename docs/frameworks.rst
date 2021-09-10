@@ -15,7 +15,7 @@ The reason that we want to support Requests is that debugging Twisted
 code can be awkward, and ``requests``-based code will run with many
 fewer dependencies.
 
-The aculib exposes a primary user interface through the AcuControl
+The soaculib exposes a primary user interface through the AcuControl
 class.  The propagation of commands and queries from the user to ACU
 are layered as follows:
 
@@ -100,8 +100,8 @@ that we need to implement it twice.  The benefits of the abstraction
 are mostly lost, since it is the more complex functions (that make
 multiple calls) that are more likely to require alteration.
 
-The solution we are pursuing in aculib is to write all the code using
-generators, but to wrap that code differently depending on the
+The solution we are pursuing in soaculib is to write all the code
+using generators, but to wrap that code differently depending on the
 framework.  For twisted, we wrap it using inlineCallbacks.  For
 Requests, we wrap it using a simple function that essentially drives
 the generator in a similar way to how inlineCallbacks does.

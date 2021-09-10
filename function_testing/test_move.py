@@ -1,9 +1,9 @@
-import aculib
+import soaculib
 import test_helpers as th
 import time
 import numpy as np
 
-acu = aculib.AcuControl()
+acu = soaculib.AcuControl()
 HOME = 180, 60
 
 if th.check_positions(acu, *HOME):

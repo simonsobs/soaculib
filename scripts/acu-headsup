@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+USAGE = """acu-headsup
+
+This program queries a dataset from the ACU and renders the
+information in a table.
+
+"""
+
+
 import curses
 import time, calendar
 import json
@@ -138,7 +146,7 @@ def main(stdscr, acu, dataset='DataSets.StatusSATPDetailed8100'):
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
-    parser = ArgumentParser()
+    parser = ArgumentParser(usage=USAGE)
 #    parser.add_argument('-d', '--dataset', default='DataSets.StatusSATPDetailed8100', help='Dataset to monitor')
     parser.add_argument('-d', '--dataset', default='DataSets.StatusGeneral8100', help='Dataset to monitor')
     args = parser.parse_args()
