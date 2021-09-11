@@ -93,6 +93,25 @@ CONFIGS = {
             'fields': ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Corrected_Boresight', 'Raw_Azimuth', 'Raw_Elevation', 'Raw_Boresight', 'Azimuth_Current_1', 'Azimuth_Current_2', 'Elevation_Current_1', 'Boresight_Current_1', 'Boresight_Current_2']
             }
     },
+
+    # This is not an ACU config.
+    '_platforms': {
+        'satp': {
+            'default_dataset': 'satp',
+            'datasets': [
+                ('satp',       'DataSets.StatusSATPDetailed8100'),
+                ('general',    'DataSets.StatusGeneral8100'),
+                ('extra',      'DataSets.StatusExtra8100'),
+                ('third',      'DataSets.Status3rdAxis'),
+                ('faults',     'DataSets.StatusDetailedFaults'),
+                ('pointing',   'DataSets.CmdPointingCorrection'),
+                ('spem',       'DataSets.CmdSPEMParameter'),
+                ('weather',    'DataSets.CmdWeatherStation'),
+                ('azimuth',    'Antenna.SkyAxes.Azimuth'),
+                ('elevation',  'Antenna.SkyAxes.Elevation'),
+            ],
+        },
+    },
 }
 
 def guess_config(hostname):

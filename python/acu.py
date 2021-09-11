@@ -138,16 +138,16 @@ class AcuControl:
 
     """
     def __init__(self, config='guess', backend=None, readonly=False):
-        acu_config = soaculib.guess_config(config)
+        self._config = soaculib.guess_config(config)
         if readonly:
-            base_url = acu_config['readonly_url']
+            base_url = self._config['readonly_url']
         else:
-            base_url = acu_config['base_url']
+            base_url = self._config['base_url']
 
         backend = soaculib.get_backend(backend)
         self.http = AcuHttpInterface(base_url, backend=backend)
         self.streams = soaculib.streams.BroadcastStreamControl.get_all(
-            acu_config, backend=backend)
+            self._config, backend=backend)
 
         # Decorate all methods for the chosen backend.
         for public_name in ['mode', 'go_to', 'go_3rd_axis', 'stop',
