@@ -26,7 +26,7 @@ CONFIGS = {
             'main': {
                 'acu_name': 'PositionBroadcast',
                 'port': 10000,
-                'schema': 'v0'
+                'schema': 'v2'
             },
             'ext': {
                 'acu_name': 'PositionBroadcastExt',
@@ -34,6 +34,10 @@ CONFIGS = {
                 'active': False,
             },
         },
+        'status': {
+            'status_name': 'Datasets.StatusSATPDetailed8100',
+#            'status_name': 'Datasets.StatusCCATDetailed8100',
+            },
 
         # For dataset description (see _platforms).
         'platform': 'satp',
@@ -80,6 +84,14 @@ CONFIGS = {
             'format': '<iddd',
             'fields': ['Day', 'Time', 'Azimuth', 'Elevation']
             },
+        'v1': {
+            'format': '<iddddd',
+            'fields': ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Raw_Azimuth', 'Raw_Elevation']
+            },
+        'v2':{
+            'format': '<idddddddddddd',
+            'fields': ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Corrected_Boresight', 'Raw_Azimuth', 'Raw_Elevation', 'Raw_Boresight', 'Azimuth_Current_1', 'Azimuth_Current_2', 'Elevation_Current_1', 'Boresight_Current_1', 'Boresight_Current_2']
+            }
     },
 }
 
