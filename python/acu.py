@@ -137,14 +137,17 @@ class AcuControl:
     """High level interface to ACU platform control.
 
     """
-    def __init__(self, config='guess', backend=None):
-        acu_config = soaculib.guess_config(config)
-        base_url = acu_config['base_url']
+    def __init__(self, config='guess', backend=None, readonly=False):
+        self._config = soaculib.guess_config(config)
+        if readonly:
+            base_url = self._config['readonly_url']
+        else:
+            base_url = self._config['base_url']
 
         backend = soaculib.get_backend(backend)
         self.http = AcuHttpInterface(base_url, backend=backend)
         self.streams = soaculib.streams.BroadcastStreamControl.get_all(
-            acu_config, backend=backend)
+            self._config, backend=backend)
 
         # Decorate all methods for the chosen backend.
         for public_name in ['mode', 'go_to', 'go_3rd_axis', 'stop',

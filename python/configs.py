@@ -13,6 +13,8 @@ CONFIGS = {
     'nanten-db':   {
         # Address of the "remote" interface.
         'base_url': 'http://172.16.5.95:8100',
+        # Address of the read-only "remote" interface.
+        'readonly_url': 'http://172.16.5.95:8110',
         # Address of the "developer" interface.
         'dev_url': 'http://172.16.5.95:8080',
         # Local interface IP.
@@ -24,7 +26,7 @@ CONFIGS = {
             'main': {
                 'acu_name': 'PositionBroadcast',
                 'port': 10000,
-                'schema': 'v0'
+                'schema': 'v2'
             },
             'ext': {
                 'acu_name': 'PositionBroadcastExt',
@@ -32,6 +34,14 @@ CONFIGS = {
                 'active': False,
             },
         },
+        'status': {
+            'status_name': 'Datasets.StatusSATPDetailed8100',
+#            'status_name': 'Datasets.StatusCCATDetailed8100',
+            },
+
+        # For dataset description (see _platforms).
+        'platform': 'satp',
+
         # Deprecated stream configs...
         'broadcaster_url': 'http://172.16.5.95:8080',
         'PositionBroadcast_target': '172.16.5.10:10000',
@@ -42,6 +52,8 @@ CONFIGS = {
     'ocs-acu-1': {
         # Address of the "remote" interface.
         'base_url': 'http://192.168.1.109:8100',
+        # Address of the read-only "remote" interface.
+        'readonly_url': 'http://192.168.1.109:8110',
         # Address of the "developer" interface.
         'dev_url': 'http://192.168.1.109:8080',
         # Local interface IP.
@@ -52,7 +64,7 @@ CONFIGS = {
             'main': {
                 'acu_name': 'PositionBroadcast',
                 'port': 10001,
-                'schema': 'v0'
+                'schema': 'v2'
             },
             'ext': {
                 'acu_name': 'PositionBroadcastExt',
@@ -72,6 +84,33 @@ CONFIGS = {
             'format': '<iddd',
             'fields': ['Day', 'Time', 'Azimuth', 'Elevation']
             },
+        'v1': {
+            'format': '<iddddd',
+            'fields': ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Raw_Azimuth', 'Raw_Elevation']
+            },
+        'v2':{
+            'format': '<idddddddddddd',
+            'fields': ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Corrected_Boresight', 'Raw_Azimuth', 'Raw_Elevation', 'Raw_Boresight', 'Azimuth_Current_1', 'Azimuth_Current_2', 'Elevation_Current_1', 'Boresight_Current_1', 'Boresight_Current_2']
+            }
+    },
+
+    # This is not an ACU config.
+    '_platforms': {
+        'satp': {
+            'default_dataset': 'satp',
+            'datasets': [
+                ('satp',       'DataSets.StatusSATPDetailed8100'),
+                ('general',    'DataSets.StatusGeneral8100'),
+                ('extra',      'DataSets.StatusExtra8100'),
+                ('third',      'DataSets.Status3rdAxis'),
+                ('faults',     'DataSets.StatusDetailedFaults'),
+                ('pointing',   'DataSets.CmdPointingCorrection'),
+                ('spem',       'DataSets.CmdSPEMParameter'),
+                ('weather',    'DataSets.CmdWeatherStation'),
+                ('azimuth',    'Antenna.SkyAxes.Azimuth'),
+                ('elevation',  'Antenna.SkyAxes.Elevation'),
+            ],
+        },
     },
 }
 

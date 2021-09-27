@@ -9,9 +9,12 @@ datasets, and querying version information.
 """
 
 import argparse
+import requests
 import socket
 import struct
+import subprocess
 import time
+import urllib
 import yaml
 
 import soaculib as aculib
@@ -19,12 +22,19 @@ import soaculib as aculib
 parser = argparse.ArgumentParser(usage=USAGE)
 # Add global options here...
 
+parser.add_argument('--readonly', default=False, action='store_true', help=
+                    "Use the 'readonly' interface instead of the main "
+                    "read/write interface.")
+
 subparsers = parser.add_subparsers(dest='command')
 
 # The bcast-* commands have a common set of options.
 bcast_p = argparse.ArgumentParser(add_help=False)
 bcast_p.add_argument('-s', '--stream', default=None)
 bcast_p.add_argument('-f', '--force', default=False, action='store_true')
+
+p = subparsers.add_parser('ping', help=
+                          "Check connections to the ACU.")
 
 p = subparsers.add_parser('bcast', help=
                           "Inspect current broadcast stream configs, "
@@ -73,7 +83,7 @@ p = subparsers.add_parser('stop', help="Stop all axes.")
 
 args = parser.parse_args()
 
-acu = aculib.AcuControl()
+acu = aculib.AcuControl(readonly=args.readonly)
 
 
 # Functions defined below this point may freely use globals assigned
@@ -110,7 +120,43 @@ def stream_safe_enable(stream, print_func=print):
     return True, ""
 
 
-if args.command == 'bcast':
+if args.command == 'ping':
+    acu_config = aculib.guess_config('guess')
+    url = acu_config['base_url'] # e.g. 'http://172.16.5.95:8100']
+    host = urllib.parse.urlparse(url).hostname
+    print(f'Pinging host at {host}')
+    p = subprocess.Popen(["/bin/ping", "-c1", "-w2", host],
+                         stdout=subprocess.PIPE)
+    p.communicate()
+    if p.returncode == 0:
+        print(f' -- host responded to ping.')
+    else:
+        print(f' -- WARNING - host did not respond to ping.')
+    print()
+
+    # Check main, readonly,  API.
+    for key, expected in [('base_url', 400),
+                          ('readonly_url', 400),
+                          ('dev_url', 200)]:
+        print(f'Trying http on {key} ...')
+        url = acu_config.get(key)
+        if url is None:
+            print(f' -- (url not configured)')
+            continue
+        print(f' -- trying {url}')
+        try:
+            t = requests.get(url + '/')
+        except requests.ConnectionError:
+            t = None
+        if t is None:
+            print(f' -- WARNING - could not connect.')
+        elif t.status_code == expected:
+            print(f' -- got expected HTTP response {t.status_code}')
+        else:
+            print(f' -- WARNING - got unexpected HTTP response {t.status_code}')
+        print()
+
+elif args.command == 'bcast':
     is_all_streams, target_streams = get_target_streams()
     if is_all_streams:
         print('Here is a summary of the %i known streams:\n' %
@@ -230,7 +276,14 @@ elif args.command == 'docs':
     print(output)
 
 elif args.command == 'dataset':
-    cfg = yaml.safe_load(open('acu_configs.yaml', 'r'))['platforms']['satp']
+    platform = acu._config.get('platform')
+    if platform is None:
+        parser.error('ACU configuration does not specify a "platform".')
+    if not isinstance(platform, dict):
+        cfg = aculib.configs.CONFIGS['_platforms'].get(platform)
+        if cfg is None:
+            parser.error(f'aculib CONFIGS does not describe platform "{platform}".')
+
     dataset_opts = {short: full_name for short, full_name in cfg['datasets']}
     if args.list:
         print('Known datasets:')
