@@ -107,31 +107,40 @@ def main(stdscr, acu, dataset='DataSets.StatusSATPDetailed8100'):
     curses.cbreak()
     stdscr.keypad(True)
     stdscr.nodelay(True)
-    
-    # ACU limits requests to 5 Hz (10 Hz according to docs...)
-    min_query_period = 0.05   # Limit to 20 Hz.
-    query_t = 0
 
-    stdscr.addstr(1,1, 'blech')
+    # Limit queries to 10 Hz.
+    min_query_period = 0.1
+
+    def quantize_future(t):
+        # Returns t1, such that t1 > t and t1 - floor(t) is an integer
+        # multiple of min_query_period.
+        frac = (t % 1 + min_query_period) // min_query_period
+        return t // 1 + frac * min_query_period
+
+    next_query_t = quantize_future(time.time())
+
+    stdscr.addstr(1,1, 'Loading acu-headsup ...')
     w = stdscr
     running = True
     R = None
     rec = Recorder()
     while running:
         now = time.time()
-        if now - query_t > min_query_period:
+        if now >= next_query_t:
             v = acu.Values(dataset)
             if R is None:
                 R = Renderer(*stdscr.getmaxyx())
             data = enrich(v, rec=rec)
             R.render(stdscr, data)
             rec.save_block(data)
-            query_t = now
+            next_query_t += min_query_period
+            if now > next_query_t:
+                next_query_t = quantize_future(now)
         stdscr.refresh()
         while True:
             c = stdscr.getch()
             if c == -1:
-                #time.sleep(.05)
+                time.sleep(0.01)
                 break
             if c == curses.KEY_RESIZE:
                 stdscr.clear()
@@ -151,5 +160,5 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--dataset', default='DataSets.StatusGeneral8100', help='Dataset to monitor')
     args = parser.parse_args()
 
-    acu = soaculib.AcuControl()
+    acu = soaculib.AcuControl(persistent=True)
     curses.wrapper(main, acu, args.dataset)

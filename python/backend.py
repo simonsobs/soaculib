@@ -15,11 +15,11 @@ class _Backend:
         return self.execute(*args, **kw)
 
 
-def get_backend(backend=None):
+def get_backend(backend=None, persistent=None):
     if isinstance(backend, _Backend):
         return backend
     if backend is None or backend == 'standard':
-        return soaculib.StandardBackend()
+        return soaculib.StandardBackend(persistent=persistent)
     if backend == 'twisted':
         from soaculib.twisted_backend import TwistedHttpBackend
         return TwistedHttpBackend()
