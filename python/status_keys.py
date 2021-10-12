@@ -12,7 +12,7 @@ status_fields = {
                 'Elevation current velocity': 'Elevation_current_velocity',
                 'Boresight mode': 'Boresight_mode',
                 'Boresight current position': 'Boresight_current_position',
-                'Qty of free program track stack positions': 'Free_upload_positions'
+                'Qty of free program track stack positions': 'Free_upload_positions',
                 },
             'position_errors':    {
                 'Azimuth average position error': 'Azimuth_avg_position_error',
@@ -112,7 +112,7 @@ status_fields = {
                 'Boresight brake 2 failure': 'Boresight_brake2_failure',
                 'Boresight breaker failure': 'Boresight_breaker_failure',
                 'Boresight amplifier 1 failure': 'Boresight_amplifier1_failure',
-                'Boresight amplifier 2 failure': 'Boresight_amplifier1_failure',
+                'Boresight amplifier 2 failure': 'Boresight_amplifier2_failure',
                 'Boresight CAN bus amplifier 1 communication failure': 'Bs_CANbus_amp1_comms_failure',
                 'Boresight CAN bus amplifier 2 communication failure': 'Bs_CANbus_amp2_comms_failure',
                 'Boresight encoder failure': 'Boresight_encoder_failure',
