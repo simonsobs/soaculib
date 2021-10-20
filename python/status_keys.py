@@ -78,7 +78,7 @@ status_fields = {
                 'Boresight motor 2 overtemperature': 'Boresight_motor2_overtemp',
                 'Boresight overspeed': 'Boresight_overspeed',
                 'Boresight regeneration resistor 1 overtemperature': 'Boresight_resistor1_overtemp',
-                'Boresight regeneration resistor 2 overtemperature': 'Boresight_resistor1_overtemp',
+                'Boresight regeneration resistor 2 overtemperature': 'Boresight_resistor2_overtemp',
                 'Boresight overcurrent motor 1': 'Boresight_motor1_overcurrent',
                 'Boresight overcurrent motor 2': 'Boresight_motor2_overcurrent',
                 },
