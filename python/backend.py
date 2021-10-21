@@ -22,7 +22,7 @@ def get_backend(backend=None, persistent=None):
         return soaculib.StandardBackend(persistent=persistent)
     if backend == 'twisted':
         from soaculib.twisted_backend import TwistedHttpBackend
-        return TwistedHttpBackend()
+        return TwistedHttpBackend(persistent=persistent)
     if backend == 'debug':
         return soaculib.DebuggingBackend()
     raise ValueError("Unknown backend request: %s" % backend)
