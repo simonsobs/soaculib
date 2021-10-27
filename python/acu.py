@@ -100,6 +100,16 @@ class AcuHttpInterface:
         return self.backend(req)
 
     def UploadPtStack(self, data=None, filename=None, type_='File', suffix='\r\n'):
+        """Upload data to UploadPtStack.  Note data takes precedence over
+        filename.  See AcuControl._UploadPtStack for more discussion on these.
+
+        The type_ argument is passed as Type= in the POST; not clear
+        if this matters.  The default suffix '\r\n' is to ensure that
+        a blank line is included at the end up the upload, since
+        otherwise the ACU responds with error (though it accepts the
+        valid data into the point stack.)
+
+        """
         if filename is None:
             filename = 'UploadedFromBrowser'
         elif data is None:
@@ -262,7 +272,6 @@ class AcuControl:
             precedence over "filename", if both are passed.  We know
             the ACU works with DOS line endings, so be cautious and
             use those.
-
           filename (str): If data is not None, then this is simply the
             filename to provide to the ACU (defaults to
             "UploadedFromBrowser".  But if data is None, then the
