@@ -7,16 +7,19 @@ import types
 
 class StandardBackend(soaculib._Backend):
     """HTTP backend that uses standard Python requests library."""
-    def __init__(self):
+    def __init__(self, persistent=False):
         self.decorator = unyielding_decorator
         self.api_decorator = api_decorator
         self.return_val_func = returnValue
+        self.session = requests
+        if persistent:
+            self.session = requests.Session()
 
     def execute(self, req):
         if req.req_type == 'GET':
-            t = requests.get(req.url, params=req.params)
+            t = self.session.get(req.url, params=req.params)
         elif req.req_type == 'POST':
-            t = requests.post(req.url, params=req.params, data=req.data)
+            t = self.session.post(req.url, params=req.params, data=req.data)
         else:
             raise ValueError("Unimplemented request type '%s'" % req.req_type)
         # Pass the result to the decoder.

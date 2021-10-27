@@ -19,7 +19,7 @@ class TwistedHttpBackend(soaculib._Backend):
 
     """
 
-    def __init__(self, web_agent=None):
+    def __init__(self, web_agent=None, persistent=False):
         """Instances of this class will make use of a twisted.web.client.Agent
         instance to perform web requests asynchronously.
 
@@ -29,7 +29,11 @@ class TwistedHttpBackend(soaculib._Backend):
         self.return_val_func = returnValue
 
         if web_agent is None:
-            web_agent = tclient.Agent(reactor)
+            if persistent:
+                pool = tclient.HTTPConnectionPool(reactor)
+                web_agent = tclient.Agent(reactor, pool=pool)
+            else:
+                web_agent = tclient.Agent(reactor)
 
         self.web_agent = web_agent
 
