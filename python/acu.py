@@ -1,5 +1,6 @@
 import soaculib
 import enum
+import os
 
 class ValuesType(enum.Enum):
     Actual = 'Actual'
@@ -98,12 +99,26 @@ class AcuHttpInterface:
             'GET', self.base_url + '/Version', {})
         return self.backend(req)
 
-    def UploadPtStack(self, points, filename=None, type_='File', suffix='\r\n'):
+    def UploadPtStack(self, data=None, filename=None, type_='File', suffix='\r\n'):
+        """Upload data to UploadPtStack.  Note data takes precedence over
+        filename.  See AcuControl._UploadPtStack for more discussion on these.
+
+        The type_ argument is passed as Type= in the POST; not clear
+        if this matters.  The default suffix '\r\n' is to ensure that
+        a blank line is included at the end up the upload, since
+        otherwise the ACU responds with error (though it accepts the
+        valid data into the point stack.)
+
+        """
         if filename is None:
             filename = 'UploadedFromBrowser'
+        elif data is None:
+            # Read lines from file and upload them.
+            data = open(filename, 'rb').read().decode('utf8')
+            filename = os.path.split(filename)[1]
         req = soaculib.http.HttpRequest(
             'POST', self.base_url + '/UploadPtStack',{'Type':type_, 'filename':filename},
-            data=points + suffix)
+            data=data + suffix)
         return self.backend(req)
 
 class Mode(enum.Enum):
@@ -249,5 +264,19 @@ class AcuControl:
         """See documentation for AcuHttpInterface.Write."""
         return (yield self.http.Write(identifier, data))
 
-    def _UploadPtStack(self, data, filename=None):
-        return (yield self.http.UploadPtStack(data, filename=filename))
+    def _UploadPtStack(self, data=None, filename=None):
+        """Send ProgramTrack points to the ACU through the UploadPtStack form.
+
+        Args:
+          data (str): The program track data to send.  This takes
+            precedence over "filename", if both are passed.  We know
+            the ACU works with DOS line endings, so be cautious and
+            use those.
+          filename (str): If data is not None, then this is simply the
+            filename to provide to the ACU (defaults to
+            "UploadedFromBrowser".  But if data is None, then the
+            specified file will be read from the local filesystem and
+            that data will be uploaded.
+
+        """
+        return (yield self.http.UploadPtStack(data=data, filename=filename))
