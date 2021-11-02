@@ -68,3 +68,9 @@ class TwistedHttpBackend(soaculib._Backend):
 
     def __call__(self, *args, **kw):
         return self.execute(*args, **kw)
+
+    @inlineCallbacks
+    def sleep(self, delay):
+        d = Deferred()
+        reactor.callLater(delay, d.callback, None)
+        yield d

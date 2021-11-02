@@ -72,6 +72,14 @@ CONFIGS = {
                 'active': False,
             },
         },
+        'status': {
+            'status_name': 'Datasets.StatusSATPDetailed8100',
+#            'status_name': 'Datasets.StatusCCATDetailed8100',
+            },
+
+        # For dataset description (see _platforms).
+        'platform': 'satp',
+
         # Deprecated stream configs...
         'broadcaster_url': '192.168.1.109:8080',
         'PositionBroadcast_target': '192.168.1.109:10001',

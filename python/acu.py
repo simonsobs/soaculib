@@ -203,7 +203,7 @@ class AcuControl:
             'DataSets.CmdModeTransfer', 'SetAzElMode', mode.value)
         self._return(result)
 
-    def _go_to(self, az=None, el=None):
+    def _go_to(self, az=None, el=None, wait=None):
         """Change to Preset mode and move to the specified position.  If a
         coordinate is omitted, no motion will be initiated on that
         axis.
@@ -213,6 +213,9 @@ class AcuControl:
 
         """
         yield self._mode('Preset')
+        if wait is not None and wait > 0:
+            print('(go_to sleep %.3f)' % wait)
+            yield self.http.backend.sleep(wait)
         if az is None and el is None:
             return
         cmd, par = [], []
