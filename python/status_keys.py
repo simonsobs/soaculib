@@ -154,9 +154,9 @@ status_fields = {
                 'Boresight oscillation alarm': 'Boresight_oscillation_alarm',
                 },
             'commands':    {
-                'Azimuth commanded position': 'Azimuth_Preset_position',
-                'Elevation commanded position':  'Elevation_Preset_position',
-                'Boresight commanded position': 'Boresight_Preset_position',
+                'Azimuth commanded position': 'Azimuth_commanded_position',
+                'Elevation commanded position':  'Elevation_commanded_position',
+                'Boresight commanded position': 'Boresight_commanded_position',
                 },
             'ACU_failures_errors':    {
                 'General summary fault': 'General_summary_fault',
