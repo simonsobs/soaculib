@@ -67,7 +67,7 @@ def check_status_keys():
                 print('soaculib.status_keys does not have key %s' %acukey)
                 missing_keys.append(acukey)
         statkey_check = False
-    if time_diff > 0.1:
+    if abs(time_diff) > 0.1:
         print('Timing difference > 0.1 seconds!')
         print(time_diff)
         timecheck = False

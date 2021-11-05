@@ -93,7 +93,20 @@ CONFIGS = {
 
         # For dataset description (see _platforms).
         'platform': 'satp',
-
+        'motion_limits': {
+            'azimuth': {
+                'lower': -90.0,
+                'upper': 480.0,
+            },
+            'elevation': {
+                'lower': 20.0,
+                'upper': 50.0,
+            },
+            'boresight': {
+                'lower': 0.0,
+                'upper': 360.,
+            },
+        },
         # Deprecated stream configs...
         'broadcaster_url': '192.168.1.109:8080',
         'PositionBroadcast_target': '192.168.1.109:10001',
@@ -132,8 +145,9 @@ CONFIGS = {
                 ('azimuth',    'Antenna.SkyAxes.Azimuth'),
                 ('elevation',  'Antenna.SkyAxes.Elevation'),
             ],
+            },
         },
-    },
+    
 }
 
 def guess_config(hostname):
