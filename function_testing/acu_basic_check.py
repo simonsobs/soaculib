@@ -113,7 +113,7 @@ if __name__ == '__main__':
     print('Status key check: ' + str(status_key_check))
     print('Status time difference check: ' + str(timecheck))
 
-    result_file = open('/home/ocs/git/soaculib/function_testing/'+str(time.time())+'_result.txt', 'w')
+    result_file = open(str(time.time())+'_result.txt', 'w')
     result_file.write('Status key check result: ' + str(status_key_check) + '\r\n')
     if len(missing_keys):
         for key in missing_keys:
