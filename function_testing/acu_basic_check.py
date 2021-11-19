@@ -67,11 +67,13 @@ def check_status_keys():
                 print('soaculib.status_keys does not have key %s' %acukey)
                 missing_keys.append(acukey)
         statkey_check = False
-    if time_diff > 0.002:
-        print('Timing difference > 0.002 seconds!')
+    if abs(time_diff) > 0.1:
+        print('Timing difference > 0.1 seconds!')
+        print(time_diff)
         timecheck = False
     else:
         print('Timing difference ok.')
+        print(time_diff)
         timecheck = True
     return statkey_check, timecheck, missing_keys, extra_keys
 
@@ -111,7 +113,7 @@ if __name__ == '__main__':
     print('Status key check: ' + str(status_key_check))
     print('Status time difference check: ' + str(timecheck))
 
-    result_file = open('/home/simons/code/soaculib/function_testing/'+str(time.time())+'_result.txt', 'w')
+    result_file = open(str(time.time())+'_result.txt', 'w')
     result_file.write('Status key check result: ' + str(status_key_check) + '\r\n')
     if len(missing_keys):
         for key in missing_keys:

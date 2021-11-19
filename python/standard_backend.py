@@ -3,6 +3,7 @@ import soaculib
 import requests
 from functools import wraps
 import types
+import time
 
 
 class StandardBackend(soaculib._Backend):
@@ -27,6 +28,10 @@ class StandardBackend(soaculib._Backend):
 
     def __call__(self, *args, **kw):
         return self.execute(*args, **kw)
+
+    def sleep(self, delay):
+        time.sleep(delay)
+        yield
 
 
 class DebuggingBackend:

@@ -41,6 +41,20 @@ CONFIGS = {
 
         # For dataset description (see _platforms).
         'platform': 'satp',
+        'motion_limits': {
+            'azimuth': {
+                'lower': -90.0,
+                'upper': 480.0,
+            },
+            'elevation': {
+                'lower': 20.0,
+                'upper': 90.0,
+            },
+            'boresight': {
+                'lower': 0.0,
+                'upper': 360.,
+            },
+        },
 
         # Deprecated stream configs...
         'broadcaster_url': 'http://172.16.5.95:8080',
@@ -70,6 +84,27 @@ CONFIGS = {
                 'acu_name': 'PositionBroadcastExt',
                 'port': 10002,
                 'active': False,
+            },
+        },
+        'status': {
+            'status_name': 'Datasets.StatusSATPDetailed8100',
+#            'status_name': 'Datasets.StatusCCATDetailed8100',
+            },
+
+        # For dataset description (see _platforms).
+        'platform': 'satp',
+        'motion_limits': {
+            'azimuth': {
+                'lower': -90.0,
+                'upper': 480.0,
+            },
+            'elevation': {
+                'lower': 20.0,
+                'upper': 50.0,
+            },
+            'boresight': {
+                'lower': 0.0,
+                'upper': 360.,
             },
         },
         # Deprecated stream configs...
@@ -110,8 +145,9 @@ CONFIGS = {
                 ('azimuth',    'Antenna.SkyAxes.Azimuth'),
                 ('elevation',  'Antenna.SkyAxes.Elevation'),
             ],
+            },
         },
-    },
+    
 }
 
 def guess_config(hostname):

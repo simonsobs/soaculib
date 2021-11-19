@@ -15,14 +15,15 @@ args = parser.parse_args()
 SPEM_KEYS = [
     'IA', 'IE',
     'TF', 'TFS',
+    'TFC',
     'AN', 'AW',
-    'AN2', 'AW2',
+#    'AN2', 'AW2',
     'NPAE',
     'CA',
-    'AES', 'AEC', 'AES2', 'AEC2',
+#    'AES', 'AEC', 'AES2', 'AEC2',
     #'EES' ... no elevation ellipticity.
 ]
-IGNORE_WRITEBACK = ['AN2', 'AW2']
+IGNORE_WRITEBACK = [] #'AN2', 'AW2']
 
 class SpemHelper:
     """This works with simple parameter names (IA, etc) and values in
@@ -114,7 +115,7 @@ if len(missing_keys):
 if len(excess_keys):
     print('  Found but did not expect these keys:')
     print('    ' + ', '.join(excess_keys))
-    keep_going = False
+    #keep_going = False
 check_ok()
 
 
@@ -231,7 +232,7 @@ if args.mode == 'survey':
     # Move through various positions, apply the model at each and
     # measure the offsets.
     data = []  # [cmd, meas0, meas1]
-    for el in [40, 50, 60]:
+    for el in [40, 45, 55]:
         for az in [160, 180, 200]:
             print('Moving to az=%.2f el=%.2f' % (az, el))
             acu.go_to(az, el)

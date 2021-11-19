@@ -17,7 +17,7 @@ REFRAC_KEYS = [
     'RelativeHumidity',# %
     'AirPressure',     # hPa
 ]
-IGNORE_WRITEBACK = [] #'AN2', 'AW2']
+IGNORE_WRITEBACK = ['Time', 'Year']
 
 class RefracHelper:
     """This works with simple parameter names (IA, etc) and values in
@@ -105,7 +105,7 @@ if len(missing_keys):
 if len(excess_keys):
     print('  Found but did not expect these keys:')
     print('    ' + ', '.join(excess_keys))
-    keep_going = False
+    keep_going = True
 check_ok()
 
 
@@ -176,7 +176,7 @@ if args.mode == 'survey':
     # measure the offsets.
     data = []  # [cmd, meas0, meas1]
     az = th.get_positions(acu)[0]  # use current pos.
-    for el in [40, 50, 60]:
+    for el in [40, 45, 50]:
         print('Moving to az=%.2f el=%.2f' % (az, el))
         acu.go_to(az, el)
         while not th.check_positions(acu, az, el):

@@ -203,16 +203,19 @@ class AcuControl:
             'DataSets.CmdModeTransfer', 'SetAzElMode', mode.value)
         self._return(result)
 
-    def _go_to(self, az=None, el=None):
+    def _go_to(self, az=None, el=None, wait=None):
         """Change to Preset mode and move to the specified position.  If a
         coordinate is omitted, no motion will be initiated on that
-        axis.
+        axis. If wait is passed, the code will wait that number of seconds
+        between setting Preset mode and writing the target position.
 
         Returns when the motion commands have been issued, which is
         probably well before when the motion itself has completed.
 
         """
         yield self._mode('Preset')
+        if wait is not None and wait > 0:
+            yield self.http.backend.sleep(wait)
         if az is None and el is None:
             return
         cmd, par = [], []
