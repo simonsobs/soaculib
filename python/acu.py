@@ -166,7 +166,7 @@ class AcuControl:
             self._config, backend=backend)
 
         # Decorate all methods for the chosen backend.
-        for public_name in ['mode', 'go_to', 'go_3rd_axis', 'stop',
+        for public_name in ['mode', 'azmode', 'go_to', 'go_3rd_axis', 'stop',
                             'Values', 'Command', 'Write', 'UploadPtStack']:
             func = getattr(self, '_' + public_name)
             setattr(self, '_' + public_name, backend.decorator(func))
@@ -201,6 +201,18 @@ class AcuControl:
         mode = Mode(mode)
         result = yield self.http.Command(
             'DataSets.CmdModeTransfer', 'SetAzElMode', mode.value)
+        self._return(result)
+
+    def _azmode(self, mode=None):
+        """Set the Antenna.SkyAxes mode for the Azimuth axis and set the
+        Antenna.SkyAxes mode for the Elevation axis to Stop.
+
+        To set the mode, pass a mode string or Mode object.  Returns a
+        success string.
+        """
+        mode = Mode(mode)
+        result = yield self.http.Command(
+            'DataSets.CmdModeTransfer', 'SetModes', [mode.value, 'Stop'])
         self._return(result)
 
     def _go_to(self, az=None, el=None, wait=None):
