@@ -54,6 +54,7 @@ CONFIGS = {
                 'lower': 0.0,
                 'upper': 360.,
             },
+            'acc': (8./1.88),
         },
 
         # Deprecated stream configs...
@@ -106,6 +107,7 @@ CONFIGS = {
                 'lower': 0.0,
                 'upper': 360.,
             },
+            'acc': (8./1.88),
         },
         # Deprecated stream configs...
         'broadcaster_url': '192.168.1.109:8080',
