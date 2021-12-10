@@ -5,6 +5,4 @@ requests
 twisted
 
 # docs
-sphinx
-sphinx-rtd-theme
-sphinx-argparse
+# see docs/requirements.txt

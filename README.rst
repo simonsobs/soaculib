@@ -19,7 +19,7 @@ scripts are not installed anywhere and should be run from the source
 tree.
 
 To install the code, along with all requirements (including those only
-needed for documentation builds or special backends)::
+needed for special backends)::
 
   pip install -r requirements.txt .
 
@@ -31,3 +31,17 @@ requirements.txt, then pip install only what you need, then::
 .. _`Simons Observatory`: https://simonsobservatory.org/
 .. _`OCS`: https://github.com/simonsobs/ocs/
 .. _`SOCS`: https://github.com/simonsobs/socs/
+
+Documentation
+-------------
+Documentation is hosted on `simons1`_. To build the documentation locally,
+first install the required dependencies::
+
+  pip install -r docs/requirements.txt
+
+Then build with Sphinx::
+
+  cd docs/
+  make html
+
+.. _`simons1`: https://simons1.princeton.edu/docs/soaculib/
