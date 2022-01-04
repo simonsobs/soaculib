@@ -158,7 +158,30 @@ if __name__ == '__main__':
     parser = ArgumentParser(usage=USAGE)
 #    parser.add_argument('-d', '--dataset', default='DataSets.StatusSATPDetailed8100', help='Dataset to monitor')
     parser.add_argument('-d', '--dataset', default='DataSets.StatusGeneral8100', help='Dataset to monitor')
+    parser.add_argument('-c', '--config', default='guess', help=
+                        "Config block to use.")
     args = parser.parse_args()
 
-    acu = soaculib.AcuControl(persistent=True, readonly=True)
+    acu = soaculib.AcuControl(args.config, persistent=True, readonly=True)
+
+    if not args.dataset.startswith('DataSets.'):
+        # Look it up ...
+        platform = acu._config.get('platform')
+        if platform is None:
+            parser.error('ACU configuration does not specify a "platform".')
+        if not isinstance(platform, dict):
+            cfg = soaculib.configs.CONFIGS['_platforms'].get(platform)
+        if cfg is None:
+            parser.error(f'aculib CONFIGS does not describe platform "{platform}".')
+
+        dataset_opts = {short: full_name for short, full_name in cfg['datasets']}
+        if args.dataset == 'list':
+            print('Datasets:')
+            for k, v in dataset_opts.items():
+                print(f'  {k:<20} : {v}')
+            parser.exit(1)
+        else:
+            args.dataset = dataset_opts[args.dataset]
+
+
     curses.wrapper(main, acu, args.dataset)
