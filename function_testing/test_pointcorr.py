@@ -80,7 +80,7 @@ def banner(title):
     print('*' * 60)
     
 
-acu = soaculib.AcuControl()
+acu = soaculib.AcuControl('satp2')
 
 banner('Check Datasets Present')
 
