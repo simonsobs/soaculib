@@ -6,8 +6,6 @@ import calendar
 import numpy as np
 import argparse
 
-#acu = aculib.AcuControl('satp2')
-
 def timecode(acutime):
     """
     Takes the time code produced by the ACU status stream and returns
