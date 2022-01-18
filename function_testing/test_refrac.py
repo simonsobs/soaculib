@@ -6,8 +6,8 @@ import pickle
 
 import spem_model
 
-import argparse
-parser = argparse.ArgumentParser()
+import util  # local.
+parser = util.get_parser()
 parser.add_argument('mode', default='passive', nargs='?')
 args = parser.parse_args()
 
@@ -70,7 +70,7 @@ def banner(title):
     print('*' * 60)
     
 
-acu = soaculib.AcuControl()
+acu = soaculib.AcuControl(args.config)
 
 banner('Check Datasets Present')
 

@@ -4,7 +4,6 @@ import time
 import datetime
 import calendar
 import numpy as np
-import argparse
 
 def timecode(acutime):
     """
@@ -106,10 +105,9 @@ def az_stop_test(az, el):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="Config block name to use")
-    args = parser.parse_args()
-    acu = aculib.AcuControl(args.config)
+    import util
+    acu = util.get_acu()
+
     status_key_check, timecheck, missing_keys, extra_keys = check_status_keys(acu)
     print('Status key check: ' + str(status_key_check))
     print('Status time difference check: ' + str(timecheck))

@@ -3,7 +3,9 @@ import test_helpers as th
 import time
 import numpy as np
 
-acu = soaculib.AcuControl('satp2')
+import util  # local.
+acu = util.get_acu()
+
 HOME = 180, 60
 
 if th.check_positions(acu, *HOME):

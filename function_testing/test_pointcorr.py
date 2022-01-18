@@ -4,10 +4,11 @@ import time
 import numpy as np
 import pickle
 
+# Locals.
 import spem_model
+import util
 
-import argparse
-parser = argparse.ArgumentParser()
+parser = util.get_parser()
 parser.add_argument('mode', default='passive', nargs='?')
 args = parser.parse_args()
 
@@ -80,7 +81,7 @@ def banner(title):
     print('*' * 60)
     
 
-acu = soaculib.AcuControl('satp2')
+acu = soaculib.AcuControl(args.config)
 
 banner('Check Datasets Present')
 
