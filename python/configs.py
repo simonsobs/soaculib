@@ -54,6 +54,7 @@ CONFIGS = {
                 'lower': 0.0,
                 'upper': 360.,
             },
+            'acc': (8./1.88),
         },
 
         # Deprecated stream configs...
@@ -62,8 +63,59 @@ CONFIGS = {
         'PositionBroadcastExt_target': '172.16.5.10:10001',
     },
 
-    # SATP ACU at Vertex.
-    'ocs-acu-1': {
+    # SATP1 ACU at Vertex.
+    'satp1': {
+        # Address of the "remote" interface.
+        'base_url': 'http://192.168.1.111:8100',
+        # Address of the read-only "remote" interface.
+        'readonly_url': 'http://192.168.1.111:8110',
+        # Address of the "developer" interface.
+        'dev_url': 'http://192.168.1.111:8080',
+        # Local interface IP.
+        'interface_ip': '192.168.1.110',
+        'motion_waittime': 5.0,
+        # List of streams to configure.
+        'streams': {
+            'main': {
+                'acu_name': 'PositionBroadcast',
+                'port': 10004, #???
+                'schema': 'v2'
+            },
+            'ext': {
+                'acu_name': 'PositionBroadcastExt',
+                'port': 10005, #???
+                'active': False,
+            },
+        },
+        'status': {
+            'status_name': 'Datasets.StatusSATPDetailed8100',
+            },
+
+        # For dataset description (see _platforms).
+        'platform': 'satp',
+        'motion_limits': {
+            'azimuth': {
+                'lower': -90.0,
+                'upper': 480.0,
+            },
+            'elevation': {
+                'lower': 20.0,
+                'upper': 50.0,
+            },
+            'boresight': {
+                'lower': 0.0,
+                'upper': 360.,
+            },
+            'acc': (8./1.88),
+        },
+        # Deprecated stream configs...
+        'broadcaster_url': '192.168.1.111:8080',
+        'PositionBroadcast_target': '192.168.1.111:10001',
+        'PositionBroadcastExt_target': '192.168.1.111:10002',
+    },
+
+    # SATP2 ACU at Vertex.
+    'satp2': {
         # Address of the "remote" interface.
         'base_url': 'http://192.168.1.109:8100',
         # Address of the read-only "remote" interface.
@@ -88,7 +140,6 @@ CONFIGS = {
         },
         'status': {
             'status_name': 'Datasets.StatusSATPDetailed8100',
-#            'status_name': 'Datasets.StatusCCATDetailed8100',
             },
 
         # For dataset description (see _platforms).
@@ -106,6 +157,7 @@ CONFIGS = {
                 'lower': 0.0,
                 'upper': 360.,
             },
+            'acc': (8./1.88),
         },
         # Deprecated stream configs...
         'broadcaster_url': '192.168.1.109:8080',

@@ -5,10 +5,6 @@ import datetime
 import calendar
 import numpy as np
 
-acu_config = aculib.guess_config('guess')
-base_url = acu_config['base_url']
-acu = aculib.AcuControl()
-
 def timecode(acutime):
     """
     Takes the time code produced by the ACU status stream and returns
@@ -24,7 +20,7 @@ def timecode(acutime):
     comptime = gyear+sec_of_day
     return comptime
 
-def check_status_keys():
+def check_status_keys(acu):
     platform = acu._config.get('platform')
     if platform is None:
         print('Error: ACU configuration does not specify "platform"')
@@ -109,7 +105,10 @@ def az_stop_test(az, el):
 
 
 if __name__ == '__main__':
-    status_key_check, timecheck, missing_keys, extra_keys = check_status_keys()
+    import util
+    acu = util.get_acu()
+
+    status_key_check, timecheck, missing_keys, extra_keys = check_status_keys(acu)
     print('Status key check: ' + str(status_key_check))
     print('Status time difference check: ' + str(timecheck))
 

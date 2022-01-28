@@ -25,6 +25,8 @@ parser = argparse.ArgumentParser(usage=USAGE)
 parser.add_argument('--readonly', default=False, action='store_true', help=
                     "Use the 'readonly' interface instead of the main "
                     "read/write interface.")
+parser.add_argument('-c', '--config', default='guess', help=
+                    "Config block name to use.")
 
 subparsers = parser.add_subparsers(dest='command')
 
@@ -83,7 +85,7 @@ p = subparsers.add_parser('stop', help="Stop all axes.")
 
 args = parser.parse_args()
 
-acu = aculib.AcuControl(readonly=args.readonly)
+acu = aculib.AcuControl(args.config, readonly=args.readonly)
 
 
 # Functions defined below this point may freely use globals assigned
