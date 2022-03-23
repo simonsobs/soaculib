@@ -9,7 +9,7 @@ based on socket.gethostname().
 
 CONFIGS = {
 
-    # Simulator ACU at UCologne.
+    # Emulator on physical ACU at UCologne.
     'nanten-db':   {
         # Address of the "remote" interface.
         'base_url': 'http://172.16.5.95:8100',
@@ -62,6 +62,60 @@ CONFIGS = {
         'PositionBroadcast_target': '172.16.5.10:10000',
         'PositionBroadcastExt_target': '172.16.5.10:10001',
     },
+
+    # Software simulator ACU at UCologne.
+    'emulator':   {
+        # Address of the "remote" interface.
+        'base_url': 'http://172.16.5.95:8102',
+        # Address of the read-only "remote" interface.
+        'readonly_url': 'http://172.16.5.95:8112',
+        # Address of the "developer" interface.
+        'dev_url': 'http://172.16.5.95:8082',
+        # Local interface IP.
+        'interface_ip': '172.16.5.10',
+        # Sleep time to wait for motion to end.
+        'motion_waittime': 1.0,
+        # List of streams to configure.
+        'streams': {
+            'main': {
+                'acu_name': 'PositionBroadcast',
+                'port': 10002,
+                'schema': 'v2'
+            },
+            'ext': {
+                'acu_name': 'PositionBroadcastExt',
+                'port': 10003,
+                'active': False,
+            },
+        },
+        'status': {
+            'status_name': 'Datasets.StatusSATPDetailed8100',
+#            'status_name': 'Datasets.StatusCCATDetailed8100',
+            },
+
+        # For dataset description (see _platforms).
+        'platform': 'satp',
+        'motion_limits': {
+            'azimuth': {
+                'lower': -90.0,
+                'upper': 480.0,
+            },
+            'elevation': {
+                'lower': 20.0,
+                'upper': 90.0,
+            },
+            'boresight': {
+                'lower': 0.0,
+                'upper': 360.,
+            },
+            'acc': (8./1.88),
+        },
+
+        # Deprecated stream configs...
+        'broadcaster_url': 'http://172.16.5.95:8082',
+        'PositionBroadcast_target': '172.16.5.10:10002',
+        'PositionBroadcastExt_target': '172.16.5.10:10003',
+    }
 
     # SATP1 ACU at Vertex.
     'satp1': {
