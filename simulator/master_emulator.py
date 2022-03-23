@@ -2,7 +2,7 @@ import numpy as np
 import time
 import datetime as dt
 from scipy.interpolate import CubicSpline
-import status_keys as sk
+import server_keys as sk
 import struct
 import pickle
 from flask import Flask, request, jsonify
@@ -267,4 +267,4 @@ def upload():
     return(Type, filename)
 
 if __name__ == "__main__":
-    app.run(host="localhost", port=8102, debug=True)
+    app.run(host="localhost", port=8102, debug=False, threaded=False, processes=3)
