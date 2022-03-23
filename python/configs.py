@@ -66,11 +66,11 @@ CONFIGS = {
     # Software simulator ACU at UCologne.
     'emulator':   {
         # Address of the "remote" interface.
-        'base_url': 'http://172.16.5.95:8102',
+        'base_url': 'http://localhost:8102',
         # Address of the read-only "remote" interface.
-        'readonly_url': 'http://172.16.5.95:8112',
+        'readonly_url': 'http://localhost:8102',
         # Address of the "developer" interface.
-        'dev_url': 'http://172.16.5.95:8082',
+        'dev_url': 'http://localhost:8102',
         # Local interface IP.
         'interface_ip': '172.16.5.10',
         # Sleep time to wait for motion to end.
@@ -79,12 +79,12 @@ CONFIGS = {
         'streams': {
             'main': {
                 'acu_name': 'PositionBroadcast',
-                'port': 10002,
+                'port': 10008,
                 'schema': 'v2'
             },
             'ext': {
                 'acu_name': 'PositionBroadcastExt',
-                'port': 10003,
+                'port': 10009,
                 'active': False,
             },
         },
@@ -110,12 +110,13 @@ CONFIGS = {
             },
             'acc': (8./1.88),
         },
+    
 
         # Deprecated stream configs...
         'broadcaster_url': 'http://172.16.5.95:8082',
         'PositionBroadcast_target': '172.16.5.10:10002',
         'PositionBroadcastExt_target': '172.16.5.10:10003',
-    }
+    },
 
     # SATP1 ACU at Vertex.
     'satp1': {
