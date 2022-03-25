@@ -8,4 +8,4 @@ s.bind(("", port))
 print("waiting on port:", port)
 while True:
     data, addr = s.recvfrom(1024)
-    print("Received:", struct.unpack(FMT, data), "from", addr)
+    print("Received:", struct.unpack(FMT, data[:100]), "from", addr)
