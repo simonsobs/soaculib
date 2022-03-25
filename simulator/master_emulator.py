@@ -246,8 +246,8 @@ class DataMaster:
                 elpts.append(elpt)
                 azflags.append(azflag)
        # print(self.queue)
-        print('udptimes len: '+str(len(udptimes)))
-        print('azflags len: ' + str(len(azflags)))
+#        print('udptimes len: '+str(len(udptimes)))
+#        print('azflags len: ' + str(len(azflags)))
 #        for i in range(len(udptimes)):
 #            self.queue['times'].append(udptimes[i])
 #            self.queue['azs'].append(azpts[i])
@@ -274,10 +274,10 @@ class DataMaster:
         turnaround = False
         discard_num = 10
         while len(queue['times'])>discard_num:
-            print('times: ' + str(len(queue['times'])))
-            print('azs: ' + str(len(queue['azs'])))
-            print('els: ' + str(len(queue['els'])))
-            print('flags: ' + str(len(queue['azflags'])))
+ #           print('times: ' + str(len(queue['times'])))
+ #           print('azs: ' + str(len(queue['azs'])))
+ #           print('els: ' + str(len(queue['els'])))
+ #           print('flags: ' + str(len(queue['azflags'])))
             next10flags = queue['azflags'][:10]
             if 2 in next10flags:
                 turnaround = True
@@ -321,8 +321,8 @@ class DataMaster:
      #       while nowtime < fittimes[0]:
      #           time.sleep(0.01)
      #           nowtime = self.data['Time_UDP']
-            print('nowtime: ' + str(nowtime))
-            print('fittimes[-1]: ' + str(fittimes[-1]))
+  #          print('nowtime: ' + str(nowtime))
+  #          print('fittimes[-1]: ' + str(fittimes[-1]))
             while nowtime < fittimes[0]:
                 time.sleep(0.1)
                 nowtime = self.data['Time_UDP']
@@ -330,7 +330,7 @@ class DataMaster:
                 try:
                     newaz = float(azfit(nowtime))
                     newel = float(elfit(nowtime))
-                    print('newaz: '+str(newaz))
+   #                 print('newaz: '+str(newaz))
                     self.update_positions(newaz, newel, self.data['Raw Boresight'])
                     self.update_timestamp(dt.datetime.now())
                     nowtime = self.data['Time_UDP']
