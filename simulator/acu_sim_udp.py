@@ -181,11 +181,12 @@ class UDP_Sim:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         pkt = self.set_values()
         sock.sendto(pkt, (host, port))
-        time.sleep(0.05)
+        #time.sleep(0.05)
         return pkt
 
 if __name__ == '__main__':
     udp = UDP_Sim(10008, 8102)
     while True:
         pkt = udp.run()
+        time.sleep(0.05)
 #        print(pkt)

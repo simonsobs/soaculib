@@ -7,6 +7,8 @@ import struct
 import pickle
 from flask import Flask, request, jsonify
 
+TZ = dt.timezone.utc
+
 def find_day_of_year(now):
     """
     Function to find the current day of the year.
@@ -25,7 +27,7 @@ def find_day_of_year(now):
     for i in range(1, now.month):
         current_day_of_year += months[i]
     current_day_of_year += now.day
-    current_hms = ((now.hour-1)*60*60 + now.minute*60 + now.second + now.microsecond*1e-6)
+    current_hms = ((now.hour)*60*60 + now.minute*60 + now.second + now.microsecond*1e-6)
     current_day_part = current_hms/(24*60*60)
     current_time = current_day_of_year + current_day_part
     return current_time, current_day_of_year, current_hms
@@ -45,7 +47,7 @@ class DataMaster:
                 self.data[key] = 'Stop'
             elif val == float:
                 self.data[key] = 0.0
-        init_now = dt.datetime.now()
+        init_now = dt.datetime.now(TZ)
         init_time, init_day, init_hms = find_day_of_year(init_now)
         self.data['Day'] = init_day
         self.data['Time_UDP'] = init_hms
@@ -154,7 +156,7 @@ class DataMaster:
 
         nowtimestamp = current_time
         while nowtimestamp < max(aztimes):
-            self.update_timestamp(dt.datetime.now())
+            self.update_timestamp(dt.datetime.now(TZ))
             input_az = float(azcurve(nowtimestamp))
             input_el = float(elcurve(nowtimestamp))
             self.update_positions(input_az, input_el, self.data['Raw Boresight'])
@@ -176,7 +178,7 @@ class DataMaster:
                 self.update_data('Elevation current velocity', float(elslopecurve(nowtimestamp)))
             time.sleep(0.001)
             nowtimestamp = self.data['Time_UDP']
-        self.update_timestamp(dt.datetime.now())
+        self.update_timestamp(dt.datetime.now(TZ))
         self.update_positions(new_az, new_el, self.data['Raw Boresight'])
         self.update_data('Elevation Current 1', 0.0)
         self.update_data('Azimuth Current 1', 0.0)
@@ -212,10 +214,10 @@ class DataMaster:
         bscurve = CubicSpline(bstimes, bss)
         nowtimestamp = current_time
         while nowtimestamp < endtime_bs:
-            self.update_timestamp(dt.datetime.now())
+            self.update_timestamp(dt.datetime.now(TZ))
             self.update_positions(self.data['Raw Azimuth'], self.data['Raw Elevation'], float(bscurve(nowtimestamp)))
             nowtimestamp = self.data['Time_UDP']
-        self.update_timestamp(dt.datetime.now())
+        self.update_timestamp(dt.datetime.now(TZ))
         self.update_positions(self.data['Raw Azimuth'], self.data['Raw Elevation'], new_bs)
 
     def upload_track(self, lines):
@@ -332,7 +334,7 @@ class DataMaster:
                     newel = float(elfit(nowtime))
    #                 print('newaz: '+str(newaz))
                     self.update_positions(newaz, newel, self.data['Raw Boresight'])
-                    self.update_timestamp(dt.datetime.now())
+                    self.update_timestamp(dt.datetime.now(TZ))
                     nowtime = self.data['Time_UDP']
                 except ValueError:
                     time.sleep(0.01)
@@ -358,12 +360,12 @@ class DataMaster:
             newel = float(elfit(nowtime))
             self.update_positions(newaz, newel, self.data['Raw Boresight'])
      #       time.sleep(0.0001)
-            self.update_timestamp(dt.datetime.now())
+            self.update_timestamp(dt.datetime.now(TZ))
             nowtime = self.data['Time_UDP']
         return True
 
     def values(self):
-        self.update_timestamp(dt.datetime.now())
+        self.update_timestamp(dt.datetime.now(TZ))
         return self.data
 
 
