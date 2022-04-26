@@ -5,6 +5,10 @@ import yaml
 """Support for loading ACU configs.
 
 The soaculib config file is a yaml file describing one or more ACUs.
+See the load() function for the list of filenames that will be tried.
+If you want the envvar, it's ACU_CONFIG.
+
+See acu-configs.yaml, in the package directory, for example syntax.
 
 """
 
@@ -18,8 +22,12 @@ def load(config_file=None, update_cache=True):
     If the config_file argument is passed, that file will be used.  If
     not, then the value of the ACU_CONFIG environment variable is
     used.  If that envvar is not set, then ~/.acu.yaml and
-    /etc/acu.yaml are tried.  If none of those exist, an exception is
-    raised.
+    /etc/acu.yaml are tried.
+
+    Finally, the acu-configs.yaml in the installed module is loaded.
+    This is likely to go away soon.
+
+    If none of those exist, an exception is raised.
 
     """
     global cache
@@ -28,9 +36,9 @@ def load(config_file=None, update_cache=True):
         (os.getenv('ACU_CONFIG'), True, 'environment variable ACU_CONFIG="{filename}"'),
         (os.path.expanduser('~/.acu.yaml'), False, 'local user config file "{filename}"'),
         ('/etc/acu.yaml', False, 'global config file "{filename}"'),
+        (os.path.join(os.path.split(__file__)[0], 'acu-configs.yaml'), False, 'acu-configs.yaml'),
     ]
     for filename, fail_on_missing, desc_format in things_to_try:
-        print(filename)
         if filename is None:
             continue
         if os.path.exists(filename):
