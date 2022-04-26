@@ -1,7 +1,3 @@
-import os
-import socket
-import yaml
-
 """Support for loading ACU configs.
 
 The soaculib config file is a yaml file describing one or more ACUs.
@@ -12,6 +8,12 @@ See acu-configs.yaml, in the package directory, for example syntax.
 
 """
 
+import os
+import socket
+import yaml
+
+#: Global variable to hold the most-recent config block from calling
+#: load().
 cache = None
 
 def load(config_file=None, update_cache=True):
@@ -59,11 +61,15 @@ def load(config_file=None, update_cache=True):
 def guess_config(hostname):
     """Return an ACU config block.  The "hostname" argument can be any
     of:
+
     - a dict, in which case it is simply returned to the user.
-    - a string giving a hostname in CONFIGS, in which case
-      CONFIGS[hostname] is returned.
+    - a string corresponding to one of the devices listed in the
+      config file, in which case devices[hostname] is returned.
     - the string 'guess', in which case the current system hostname is
-      determined and the config looked up in CONFIGS.
+      determined and that block is returned from hostname.
+
+    Note that if the devices dict includes an entry called "_default",
+    then that will be returned if all else fails.
 
     """
     if cache is None:
@@ -84,7 +90,7 @@ def guess_config(hostname):
 
 def get_stream_schema(name):
     """
-    Returns the _stream_schemas entry for name.
+    Returns the stream_schemas entry for name.
     """
     return cache['stream_schemas'][name]
 

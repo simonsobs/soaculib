@@ -40,3 +40,9 @@ PositionBroadcast
    :undoc-members:
    :members: _enable,_set_destination,_set_port,_set_config,_get_status
 
+
+configs
+=======
+
+.. automodule:: soaculib.configs
+   :members:
