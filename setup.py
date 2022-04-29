@@ -5,4 +5,15 @@ setup(name='soaculib',
       package_dir={'soaculib': 'python'},
       packages=['soaculib'],
       scripts=['scripts/acu-headsup', 'scripts/acu-special'],
-)
+      install_requires=[
+           'requests',
+           'twisted',
+      ],
+      extras_require={
+          'simulator': [
+              'flask',
+              'numpy',
+              'scipy',
+          ],
+      },
+      )
