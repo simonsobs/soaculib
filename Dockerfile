@@ -1,5 +1,7 @@
 FROM python:3.10
 
+RUN pip install dumb-init
+
 WORKDIR /app/soaculib/
 
 COPY . /app/soaculib/
