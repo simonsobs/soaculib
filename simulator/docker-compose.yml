@@ -1,0 +1,22 @@
+version: '3.7'
+
+# The simulator puts out a huge amount of logs, limit what is saved
+x-log-options:
+  &log-options
+  logging:
+    options:
+      max-size: "20m"
+      max-file: "10"
+
+services:
+  acu-simulator-master:
+    image: soaculib:latest
+    <<: *log-options
+    network_mode: "host"
+    entrypoint: ["dumb-init", "/usr/local/bin/python", "/app/soaculib/simulator/master_emulator.py"]
+
+  acu-simulator-udp:
+    image: soaculib:latest
+    <<: *log-options
+    network_mode: "host"
+    entrypoint: ["dumb-init", "./wait-for", "localhost:8102", "--", "/usr/local/bin/python", "./simulator/acu_sim_udp.py"]
