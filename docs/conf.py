@@ -13,6 +13,7 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+from soaculib import __version__ as soaculib_version
 
 
 # -- Project information -----------------------------------------------------
@@ -21,6 +22,10 @@ project = 'soaculib'
 copyright = '2021, Simons Observatory'
 author = 'Simons Observatory'
 
+# The short X.Y version
+version = soaculib_version
+# The full version, including alpha/beta/rc tags
+release = soaculib_version
 
 # -- General configuration ---------------------------------------------------
 
