@@ -7,3 +7,6 @@ from .standard_backend import StandardBackend, DebuggingBackend
 from .configs import guess_config, get_stream_schema
 from . import http
 from . import util
+
+from . import _version
+__version__ = _version.get_versions()['version']
