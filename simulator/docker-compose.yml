@@ -14,6 +14,9 @@ services:
     <<: *log-options
     network_mode: "host"
     entrypoint: ["dumb-init", "/usr/local/bin/python", "/app/soaculib/simulator/master_emulator.py"]
+    # Launch with gunicorn
+    #working_dir: "/app/soaculib/simulator"
+    #entrypoint: ["dumb-init", "/usr/local/bin/gunicorn", "--workers=2", "master_emulator:app"]
 
   acu-simulator-udp:
     image: soaculib:latest

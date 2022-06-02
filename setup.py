@@ -14,6 +14,7 @@ setup(name='soaculib',
               'flask',
               'numpy',
               'scipy',
+              'gunicorn',
           ],
       },
       )

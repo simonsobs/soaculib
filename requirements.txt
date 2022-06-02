@@ -8,6 +8,7 @@ twisted
 numpy
 scipy
 flask
+gunicorn
 
 # docs
 # see docs/requirements.txt
