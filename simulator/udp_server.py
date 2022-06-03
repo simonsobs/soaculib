@@ -15,7 +15,7 @@ class UDP_Sim:
         self.data_object = data_object
         self.data = data_object.data
 
-    def read_http(self):
+    def _build_udp_data(self):
         all_data = self.data_object.data
         udp_data = {}
         udp_keys = [
@@ -51,7 +51,7 @@ class UDP_Sim:
                       'Boresight Current 1': [],
                       'Boresight Current 2': []}
         for i in range(self.pkt_size):
-            self.data = self.read_http()
+            self.data = self._build_udp_data()
             for key in self.data.keys():
                 pkt_values[key].append(self.data[key])
             time.sleep(0.005)
