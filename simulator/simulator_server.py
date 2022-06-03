@@ -3,10 +3,10 @@ from threading import Thread
 from flask import Flask, request, jsonify
 
 from master_emulator import DataMaster
-from udp_server import UDP_Sim
+from udp_server import AcuUdpServer
 
 satp = DataMaster('Datasets.StatusSATPDetailed8100')
-udp = UDP_Sim(10008, satp)
+udp = AcuUdpServer(10008, satp)
 app = Flask(__name__)
 
 

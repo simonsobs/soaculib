@@ -19,7 +19,14 @@ UDP_KEYS = [
     'Boresight Current 2']
 
 
-class UDP_Sim:
+class AcuUdpServer:
+    """Class meant to mimic the ACU UDP Server.
+
+    args:
+        write_port (int): Port to write UDP packets to
+        data_object (DataMaster): ACU emulating data object
+
+    """
     def __init__(self, write_port, data_object):
         self.pkt_size = 10
         self.fmt = '<' + 'idddddddddddd'*self.pkt_size
@@ -28,6 +35,12 @@ class UDP_Sim:
         self.data = data_object.data
 
     def _build_udp_data(self):
+        """Retreive (and update) the values from the DataMaster.
+
+        The full data from DataMaster is more than the UDP needs to report, so
+        we then limit just to the info in UDP_KEYS.
+
+        """
         all_data = self.data_object.values()
         udp_data = {}
         for key in UDP_KEYS:
@@ -35,6 +48,7 @@ class UDP_Sim:
         return udp_data
 
     def set_values(self):
+        """Build the struct to send over UDP to the ACU Agent."""
         # Fetch values from DataMaster object
         pkt_values = {k: [] for k in UDP_KEYS}
         for i in range(self.pkt_size):
@@ -53,6 +67,11 @@ class UDP_Sim:
         return pack
 
     def run(self):
+        """Run the server.
+
+        At 20 Hz we build a packet of 10 data points and send it out to the ACU Agent.
+
+        """
         host = "localhost"
         port = self.write_port
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
