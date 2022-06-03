@@ -68,7 +68,7 @@ def command():
         satp.preset_bs_motion(new_bs)
     else:
         return 'identifier not found'
-    data = satp.values()
+    satp.values()
     return 'ok, command executed'
 
 

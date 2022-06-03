@@ -236,13 +236,13 @@ class DataMaster:
         slines = lines.decode('utf-8')
         linelist = slines.split('\r\n')
         doys = []
-        #dtimes = []
+        # dtimes = []
         udptimes = []
         azpts = []
         elpts = []
         azflags = []
         for line in linelist:
-            #    print(line)
+            # print(line)
             if len(line):
                 acutime = line.split(';')[0]
                 doy = int(acutime.split(', ')[0])
@@ -259,14 +259,14 @@ class DataMaster:
                 azpts.append(azpt)
                 elpts.append(elpt)
                 azflags.append(azflag)
-       # print(self.queue)
-#        print('udptimes len: '+str(len(udptimes)))
-#        print('azflags len: ' + str(len(azflags)))
-#        for i in range(len(udptimes)):
-#            self.queue['times'].append(udptimes[i])
-#            self.queue['azs'].append(azpts[i])
-#            self.queue['els'].append(elpts[i])
-#            self.queue['azflags'].append(azflags[i])
+        # print(self.queue)
+        # print('udptimes len: '+str(len(udptimes)))
+        # print('azflags len: ' + str(len(azflags)))
+        # for i in range(len(udptimes)):
+        #     self.queue['times'].append(udptimes[i])
+        #     self.queue['azs'].append(azpts[i])
+        #     self.queue['els'].append(elpts[i])
+        #     self.queue['azflags'].append(azflags[i])
         self.queue['times'] = np.concatenate((self.queue['times'], udptimes))
         self.queue['azs'] = np.concatenate((self.queue['azs'], azpts))
         self.queue['els'] = np.concatenate((self.queue['els'], elpts))
@@ -283,15 +283,15 @@ class DataMaster:
         if modes[0] != 'ProgramTrack':
             return False
         queue = self.queue
-     #   print(queue)
+        # print(queue)
         discard_queue = {'times': [], 'azs': [], 'els': [], 'azflags': []}
         turnaround = False
         discard_num = 10
         while len(queue['times']) > discard_num:
-         #           print('times: ' + str(len(queue['times'])))
-         #           print('azs: ' + str(len(queue['azs'])))
-         #           print('els: ' + str(len(queue['els'])))
-         #           print('flags: ' + str(len(queue['azflags'])))
+            # print('times: ' + str(len(queue['times'])))
+            # print('azs: ' + str(len(queue['azs'])))
+            # print('els: ' + str(len(queue['els'])))
+            # print('flags: ' + str(len(queue['azflags'])))
             next10flags = queue['azflags'][:10]
             if 2 in next10flags:
                 turnaround = True
@@ -332,11 +332,11 @@ class DataMaster:
                 discard_queue['els'].append(discard_el)
                 discard_queue['azflags'].append(discard_flag)
             nowtime = self.data['Time_UDP']
-     #       while nowtime < fittimes[0]:
-     #           time.sleep(0.01)
-     #           nowtime = self.data['Time_UDP']
-  #          print('nowtime: ' + str(nowtime))
-  #          print('fittimes[-1]: ' + str(fittimes[-1]))
+            # while nowtime < fittimes[0]:
+            #     time.sleep(0.01)
+            #     nowtime = self.data['Time_UDP']
+            # print('nowtime: ' + str(nowtime))
+            # print('fittimes[-1]: ' + str(fittimes[-1]))
             while nowtime < fittimes[0]:
                 time.sleep(0.1)
                 nowtime = self.data['Time_UDP']
@@ -344,7 +344,7 @@ class DataMaster:
                 try:
                     newaz = float(azfit(nowtime))
                     newel = float(elfit(nowtime))
-   #                 print('newaz: '+str(newaz))
+                    # print('newaz: '+str(newaz))
                     self.update_positions(newaz, newel, self.data['Raw Boresight'])
                     self.update_timestamp(dt.datetime.now(TZ))
                     nowtime = self.data['Time_UDP']
@@ -352,7 +352,7 @@ class DataMaster:
                     time.sleep(0.01)
                     nowtime = self.data['Time_UDP']
             queue = self.queue
-      #      print(queue)
+            # print(queue)
         final_stretch = self.queue
         landing = {'times': [], 'azs': [], 'els': [], 'azflags': []}
         for i in range(30):
@@ -371,7 +371,7 @@ class DataMaster:
             newaz = float(azfit(nowtime))
             newel = float(elfit(nowtime))
             self.update_positions(newaz, newel, self.data['Raw Boresight'])
-     #       time.sleep(0.0001)
+            # time.sleep(0.0001)
             self.update_timestamp(dt.datetime.now(TZ))
             nowtime = self.data['Time_UDP']
         return True
