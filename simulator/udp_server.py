@@ -1,34 +1,10 @@
 import time
 import struct
 import socket
-import requests
-
-
-def read_http(read_port=8102):
-    r = requests.get('http://localhost:' + str(read_port) + '/Values')
-    all_data = r.json()
-    udp_data = {}
-    udp_keys = [
-        'Day',
-        'Time_UDP',
-        'Corrected Azimuth',
-        'Corrected Elevation',
-        'Corrected Boresight',
-        'Raw Azimuth',
-        'Raw Elevation',
-        'Raw Boresight',
-        'Azimuth Current 1',
-        'Azimuth Current 2',
-        'Elevation Current 1',
-        'Boresight Current 1',
-        'Boresight Current 2']
-    for key in udp_keys:
-        udp_data[key] = all_data[key]
-    return udp_data
 
 
 class UDP_Sim:
-    def __init__(self, write_port, read_port):
+    def __init__(self, write_port, data_object):
         self.pkt_size = 10
         self.fmt = 'idddddddddddd'
         self.fmts = []
@@ -36,9 +12,9 @@ class UDP_Sim:
             self.fmts.append(self.fmt)
         self.FMT = '<' + ('').join(self.fmts)
         self.write_port = write_port
-        self.read_port = read_port
-        self.data = read_http()
-        # print(self.data)
+        self.data_object = data_object
+        self.data = data_object.data
+        print(self.data)
         # {'Day': 153,
         #  'Time_UDP': 61070.815473,
         #  'Corrected Azimuth': 90.0,
@@ -52,6 +28,27 @@ class UDP_Sim:
         #  'Elevation Current 1': 0.0,
         #  'Boresight Current 1': 0.0,
         #  'Boresight Current 2': 0.0}
+
+    def read_http(self):
+        all_data = self.data_object.data
+        udp_data = {}
+        udp_keys = [
+            'Day',
+            'Time_UDP',
+            'Corrected Azimuth',
+            'Corrected Elevation',
+            'Corrected Boresight',
+            'Raw Azimuth',
+            'Raw Elevation',
+            'Raw Boresight',
+            'Azimuth Current 1',
+            'Azimuth Current 2',
+            'Elevation Current 1',
+            'Boresight Current 1',
+            'Boresight Current 2']
+        for key in udp_keys:
+            udp_data[key] = all_data[key]
+        return udp_data
 
     def set_values(self):
         pkt_values = {'Day': [],
@@ -68,7 +65,7 @@ class UDP_Sim:
                       'Boresight Current 1': [],
                       'Boresight Current 2': []}
         for i in range(self.pkt_size):
-            self.data = read_http()
+            self.data = self.read_http()
             for key in self.data.keys():
                 pkt_values[key].append(self.data[key])
             time.sleep(0.005)
@@ -209,15 +206,7 @@ class UDP_Sim:
         host = "localhost"
         port = self.write_port
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        pkt = self.set_values()
-        sock.sendto(pkt, (host, port))
-        # time.sleep(0.05)
-        return pkt
-
-
-if __name__ == '__main__':
-    udp = UDP_Sim(10008, 8102)
-    while True:
-        pkt = udp.run()
-        time.sleep(0.05)
-#        print(pkt)
+        while True:
+            pkt = self.set_values()
+            sock.sendto(pkt, (host, port))
+            time.sleep(0.05)
