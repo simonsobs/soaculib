@@ -6,6 +6,7 @@ import server_keys as sk
 
 TZ = dt.timezone.utc
 
+
 def find_day_of_year(now):
     """
     Function to find the current day of the year.
@@ -14,7 +15,7 @@ def find_day_of_year(now):
 
     Returns: current time as a portion of a day of the year
     """
-    months = {1:31, 3:31, 4:30, 5:31, 6:30, 7:31, 8:31, 9:30, 10:31, 11:30, 12:31}
+    months = {1: 31, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
     year = now.year
     if year % 4 == 0:
         months[2] = 29
@@ -24,16 +25,22 @@ def find_day_of_year(now):
     for i in range(1, now.month):
         current_day_of_year += months[i]
     current_day_of_year += now.day
-    current_hms = ((now.hour)*60*60 + now.minute*60 + now.second + now.microsecond*1e-6)
-    current_day_part = current_hms/(24*60*60)
+    current_hms = ((now.hour) * 60 * 60 + now.minute * 60 + now.second + now.microsecond * 1e-6)
+    current_day_part = current_hms / (24 * 60 * 60)
     current_time = current_day_of_year + current_day_part
     return current_time, current_day_of_year, current_hms
+
 
 class DataMaster:
     def __init__(self, dataset):
         self.data = {}
-        self.queue = {'times':np.array([]), 'azs':np.array([]), 'els':np.array([]), 'azflags':np.array([])}
-        self.queue['free'] = 10000-len(self.queue['times'])
+        self.queue = {
+            'times': np.array(
+                []), 'azs': np.array(
+                []), 'els': np.array(
+                []), 'azflags': np.array(
+                    [])}
+        self.queue['free'] = 10000 - len(self.queue['times'])
         print('self.queue = ' + str(self.queue))
         for key, val in sk.status_fields[dataset].items():
             if val == int:
@@ -59,6 +66,7 @@ class DataMaster:
         self.data['Boresight current position'] = 10.
         self.data['Raw Boresight'] = 10.
         self.data['Corrected Boresight'] = 10.
+
     def update_timestamp(self, now):
         new_data = self.data
         nowtime, nowday, nowhms = find_day_of_year(now)
@@ -67,6 +75,7 @@ class DataMaster:
         new_data['Year'] = now.year
         new_data['Time'] = nowtime
         self.data = new_data
+
     def update_positions(self, new_az, new_el, new_bs):
         new_data = self.data
         new_data['Azimuth current position'] = new_az
@@ -79,10 +88,12 @@ class DataMaster:
         new_data['Raw Boresight'] = new_bs
         new_data['Corrected Boresight'] = new_bs
         self.data = new_data
+
     def update_data(self, key, new_value):
         new_data = self.data
         new_data[key] = new_value
         self.data = new_data
+
     def preset_azel_motion(self, new_az, new_el):
         current_azmode = self.data['Azimuth mode']
         current_elmode = self.data['Elevation mode']
@@ -103,7 +114,7 @@ class DataMaster:
         else:
             elvel = 0.0
         current_time = self.data['Time_UDP'] + 5.
-        initial_times = np.linspace(current_time - 5., current_time-0.01, num=10)
+        initial_times = np.linspace(current_time - 5., current_time - 0.01, num=10)
         initial_azs = np.zeros(10) + current_az
         initial_els = np.zeros(10) + current_el
         if azvel != 0.0:
@@ -135,15 +146,15 @@ class DataMaster:
         aztimes = np.concatenate((initial_times, aztimes))
         eltimes = np.concatenate((initial_times, eltimes))
         azs = np.concatenate((initial_azs, azs))
-        els = np.concatenate((initial_els, els)) 
+        els = np.concatenate((initial_els, els))
 
         azslopes = []
         elslopes = []
         for i in range(1, len(azs)):
-            aslope = (azs[i] - azs[i-1]) / (aztimes[i] - aztimes[i-1])
+            aslope = (azs[i] - azs[i - 1]) / (aztimes[i] - aztimes[i - 1])
             azslopes.append(aslope)
         for j in range(1, len(els)):
-            eslope = (els[j] - els[j-1]) / (eltimes[j] - eltimes[j-1])
+            eslope = (els[j] - els[j - 1]) / (eltimes[j] - eltimes[j - 1])
             elslopes.append(eslope)
 
         azcurve = CubicSpline(aztimes, azs)
@@ -158,15 +169,15 @@ class DataMaster:
             input_el = float(elcurve(nowtimestamp))
             self.update_positions(input_az, input_el, self.data['Raw Boresight'])
             if azvel > 0:
-                self.update_data('Azimuth Current 1', 3 + 0.1*np.random.random())
-                self.update_data('Azimuth Current 2', 3 + 0.1*np.random.random())
+                self.update_data('Azimuth Current 1', 3 + 0.1 * np.random.random())
+                self.update_data('Azimuth Current 2', 3 + 0.1 * np.random.random())
             if azvel < 0:
-                self.update_data('Azimuth Current 1', -1*(3+0.1*np.random.random()))
-                self.update_data('Azimuth Current 2', -1*(3+0.1*np.random.random()))
+                self.update_data('Azimuth Current 1', -1 * (3 + 0.1 * np.random.random()))
+                self.update_data('Azimuth Current 2', -1 * (3 + 0.1 * np.random.random()))
             if elvel > 0:
-                self.update_data('Elevation Current 1', (3+0.1*np.random.random()))
+                self.update_data('Elevation Current 1', (3 + 0.1 * np.random.random()))
             if elvel < 0:
-                self.update_data('Elevation Current 1', -1*(3+0.1*np.random.random()))
+                self.update_data('Elevation Current 1', -1 * (3 + 0.1 * np.random.random()))
             if nowtimestamp == current_time:
                 self.update_data('Azimuth current velocity', azvel)
                 self.update_data('Elevation current velocity', elvel)
@@ -189,9 +200,9 @@ class DataMaster:
             return
         new_data = self.data
         for i in range(len(axes)):
-            new_data[axes[i]+" mode"] = modes[i]
+            new_data[axes[i] + " mode"] = modes[i]
         self.data = new_data
-        
+
     def preset_bs_motion(self, new_bs):
         current_bs = self.data['Raw Boresight']
         if current_bs > new_bs:
@@ -212,7 +223,11 @@ class DataMaster:
         nowtimestamp = current_time
         while nowtimestamp < endtime_bs:
             self.update_timestamp(dt.datetime.now(TZ))
-            self.update_positions(self.data['Raw Azimuth'], self.data['Raw Elevation'], float(bscurve(nowtimestamp)))
+            self.update_positions(
+                self.data['Raw Azimuth'],
+                self.data['Raw Elevation'],
+                float(
+                    bscurve(nowtimestamp)))
             nowtimestamp = self.data['Time_UDP']
         self.update_timestamp(dt.datetime.now(TZ))
         self.update_positions(self.data['Raw Azimuth'], self.data['Raw Elevation'], new_bs)
@@ -227,7 +242,7 @@ class DataMaster:
         elpts = []
         azflags = []
         for line in linelist:
-        #    print(line)
+            #    print(line)
             if len(line):
                 acutime = line.split(';')[0]
                 doy = int(acutime.split(', ')[0])
@@ -238,7 +253,7 @@ class DataMaster:
                 azpt = float(line.split(';')[1])
                 elpt = float(line.split(';')[2])
                 azflag = int(line.split(';')[5])
-                timeudp = hr*60.*60. + mn*60. + sc
+                timeudp = hr * 60. * 60. + mn * 60. + sc
                 doys.append(doy)
                 udptimes.append(timeudp)
                 azpts.append(azpt)
@@ -269,14 +284,14 @@ class DataMaster:
             return False
         queue = self.queue
      #   print(queue)
-        discard_queue = {'times':[], 'azs':[], 'els':[], 'azflags':[]}
+        discard_queue = {'times': [], 'azs': [], 'els': [], 'azflags': []}
         turnaround = False
         discard_num = 10
-        while len(queue['times'])>discard_num:
- #           print('times: ' + str(len(queue['times'])))
- #           print('azs: ' + str(len(queue['azs'])))
- #           print('els: ' + str(len(queue['els'])))
- #           print('flags: ' + str(len(queue['azflags'])))
+        while len(queue['times']) > discard_num:
+         #           print('times: ' + str(len(queue['times'])))
+         #           print('azs: ' + str(len(queue['azs'])))
+         #           print('els: ' + str(len(queue['els'])))
+         #           print('flags: ' + str(len(queue['azflags'])))
             next10flags = queue['azflags'][:10]
             if 2 in next10flags:
                 turnaround = True
@@ -294,7 +309,7 @@ class DataMaster:
                     fitels.append(k)
                 azfit = CubicSpline(fittimes, fitazs)
                 elfit = CubicSpline(fittimes, fitels)
-                discard_num = 15 
+                discard_num = 15
             else:
                 fittimes = queue['times'][:10]
                 fitazs = queue['azs'][:10]
@@ -303,10 +318,10 @@ class DataMaster:
                 elfit = interp1d(fittimes, fitels)
                 discard_num = 10
             for i in range(discard_num):
-                discard_t = self.queue['times'][0]#self.queue['times'].pop(0)
-                discard_az = self.queue['azs'][0]#self.queue['azs'].pop(0)
-                discard_el = self.queue['els'][0]#self.queue['els'].pop(0)
-                discard_flag = self.queue['azflags'][0]#self.queue['azflags'].pop(0)
+                discard_t = self.queue['times'][0]  # self.queue['times'].pop(0)
+                discard_az = self.queue['azs'][0]  # self.queue['azs'].pop(0)
+                discard_el = self.queue['els'][0]  # self.queue['els'].pop(0)
+                discard_flag = self.queue['azflags'][0]  # self.queue['azflags'].pop(0)
                 self.queue['times'] = np.delete(self.queue['times'], 0)
                 self.queue['azs'] = np.delete(self.queue['azs'], 0)
                 self.queue['els'] = np.delete(self.queue['els'], 0)
@@ -339,9 +354,9 @@ class DataMaster:
             queue = self.queue
       #      print(queue)
         final_stretch = self.queue
-        landing = {'times':[], 'azs':[], 'els':[], 'azflags':[]}
+        landing = {'times': [], 'azs': [], 'els': [], 'azflags': []}
         for i in range(30):
-            landing['times'].append(final_stretch['times'][-1]+0.1)
+            landing['times'].append(final_stretch['times'][-1] + 0.1)
             landing['azs'].append(final_stretch['azs'][-1])
             landing['els'].append(final_stretch['els'][-1])
             landing['azflags'].append(1)

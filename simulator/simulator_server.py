@@ -6,6 +6,7 @@ from master_emulator import DataMaster
 app = Flask(__name__)
 satp = DataMaster('Datasets.StatusSATPDetailed8100')
 
+
 @app.route("/Values", methods=["GET"])
 def get_data():
     data = satp.values()
@@ -19,16 +20,18 @@ def get_data():
     else:
         return jsonify(data)
 
+
 @app.route("/Version", methods=["GET"])
 def get_version():
     version = 'Simulator Version 1.0'
     return version
 
+
 @app.route("/Command", methods=["GET"])
 def command():
     identifier = request.args.get('identifier')
     cmd = request.args.get('command')
-    param = request.args.get('parameter')    
+    param = request.args.get('parameter')
     if identifier == "DataSets.CmdAzElPositionTransfer":
         if cmd == 'Set Azimuth Elevation':
             azel = param.split('|')
@@ -39,7 +42,12 @@ def command():
             return 'command not found'
     elif identifier == "DataSets.CmdTimePositionTransfer":
         if cmd == "Clear Stack":
-            satp.queue = {'times':np.array([]), 'azs':np.array([]), 'els':np.array([]), 'azflags':np.array([]), 'free':10000}
+            satp.queue = {
+                'times': np.array(
+                    []), 'azs': np.array(
+                    []), 'els': np.array(
+                    []), 'azflags': np.array(
+                    []), 'free': 10000}
             satp.update_data('Qty of free program track stack positions', satp.queue['free'])
         else:
             return 'command not found'
@@ -63,6 +71,7 @@ def command():
     data = satp.values()
     return 'ok, command executed'
 
+
 @app.route("/UploadPtStack", methods=["POST"])
 def upload():
     upload_lines = request.data
@@ -70,5 +79,6 @@ def upload():
     satp.run_track()
     return 'ok, command executed'
 
+
 if __name__ == "__main__":
-    app.run(host="localhost", port=8102, debug=False)#, threaded=False, processes=3)
+    app.run(host="localhost", port=8102, debug=False)  # , threaded=False, processes=3)
