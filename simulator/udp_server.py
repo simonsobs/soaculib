@@ -28,7 +28,7 @@ class UDP_Sim:
         self.data = data_object.data
 
     def _build_udp_data(self):
-        all_data = self.data_object.data
+        all_data = self.data_object.values()
         udp_data = {}
         for key in UDP_KEYS:
             udp_data[key] = all_data[key]
