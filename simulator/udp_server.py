@@ -3,14 +3,26 @@ import struct
 import socket
 
 
+UDP_KEYS = [
+    'Day',
+    'Time_UDP',
+    'Corrected Azimuth',
+    'Corrected Elevation',
+    'Corrected Boresight',
+    'Raw Azimuth',
+    'Raw Elevation',
+    'Raw Boresight',
+    'Azimuth Current 1',
+    'Azimuth Current 2',
+    'Elevation Current 1',
+    'Boresight Current 1',
+    'Boresight Current 2']
+
+
 class UDP_Sim:
     def __init__(self, write_port, data_object):
         self.pkt_size = 10
-        self.fmt = 'idddddddddddd'
-        self.fmts = []
-        for i in range(self.pkt_size):
-            self.fmts.append(self.fmt)
-        self.FMT = '<' + ('').join(self.fmts)
+        self.fmt = '<' + 'idddddddddddd'*self.pkt_size
         self.write_port = write_port
         self.data_object = data_object
         self.data = data_object.data
@@ -18,174 +30,26 @@ class UDP_Sim:
     def _build_udp_data(self):
         all_data = self.data_object.data
         udp_data = {}
-        udp_keys = [
-            'Day',
-            'Time_UDP',
-            'Corrected Azimuth',
-            'Corrected Elevation',
-            'Corrected Boresight',
-            'Raw Azimuth',
-            'Raw Elevation',
-            'Raw Boresight',
-            'Azimuth Current 1',
-            'Azimuth Current 2',
-            'Elevation Current 1',
-            'Boresight Current 1',
-            'Boresight Current 2']
-        for key in udp_keys:
+        for key in UDP_KEYS:
             udp_data[key] = all_data[key]
         return udp_data
 
     def set_values(self):
-        pkt_values = {'Day': [],
-                      'Time_UDP': [],
-                      'Corrected Azimuth': [],
-                      'Corrected Elevation': [],
-                      'Corrected Boresight': [],
-                      'Raw Azimuth': [],
-                      'Raw Elevation': [],
-                      'Raw Boresight': [],
-                      'Azimuth Current 1': [],
-                      'Azimuth Current 2': [],
-                      'Elevation Current 1': [],
-                      'Boresight Current 1': [],
-                      'Boresight Current 2': []}
+        # Fetch values from DataMaster object
+        pkt_values = {k: [] for k in UDP_KEYS}
         for i in range(self.pkt_size):
             self.data = self._build_udp_data()
             for key in self.data.keys():
                 pkt_values[key].append(self.data[key])
             time.sleep(0.005)
-        pack = struct.pack(self.FMT,
-                           pkt_values['Day'][0],
-                           pkt_values['Time_UDP'][0],
-                           pkt_values['Corrected Azimuth'][0],
-                           pkt_values['Corrected Elevation'][0],
-                           pkt_values['Corrected Boresight'][0],
-                           pkt_values['Raw Azimuth'][0],
-                           pkt_values['Raw Elevation'][0],
-                           pkt_values['Raw Boresight'][0],
-                           pkt_values['Azimuth Current 1'][0],
-                           pkt_values['Azimuth Current 2'][0],
-                           pkt_values['Elevation Current 1'][0],
-                           pkt_values['Boresight Current 1'][0],
-                           pkt_values['Boresight Current 2'][0],
-                           pkt_values['Day'][1],
-                           pkt_values['Time_UDP'][1],
-                           pkt_values['Corrected Azimuth'][1],
-                           pkt_values['Corrected Elevation'][1],
-                           pkt_values['Corrected Boresight'][1],
-                           pkt_values['Raw Azimuth'][1],
-                           pkt_values['Raw Elevation'][1],
-                           pkt_values['Raw Boresight'][1],
-                           pkt_values['Azimuth Current 1'][1],
-                           pkt_values['Azimuth Current 2'][1],
-                           pkt_values['Elevation Current 1'][1],
-                           pkt_values['Boresight Current 1'][1],
-                           pkt_values['Boresight Current 2'][1],
-                           pkt_values['Day'][2],
-                           pkt_values['Time_UDP'][2],
-                           pkt_values['Corrected Azimuth'][2],
-                           pkt_values['Corrected Elevation'][2],
-                           pkt_values['Corrected Boresight'][2],
-                           pkt_values['Raw Azimuth'][2],
-                           pkt_values['Raw Elevation'][2],
-                           pkt_values['Raw Boresight'][2],
-                           pkt_values['Azimuth Current 1'][2],
-                           pkt_values['Azimuth Current 2'][2],
-                           pkt_values['Elevation Current 1'][2],
-                           pkt_values['Boresight Current 1'][2],
-                           pkt_values['Boresight Current 2'][2],
-                           pkt_values['Day'][3],
-                           pkt_values['Time_UDP'][3],
-                           pkt_values['Corrected Azimuth'][3],
-                           pkt_values['Corrected Elevation'][3],
-                           pkt_values['Corrected Boresight'][3],
-                           pkt_values['Raw Azimuth'][3],
-                           pkt_values['Raw Elevation'][3],
-                           pkt_values['Raw Boresight'][3],
-                           pkt_values['Azimuth Current 1'][3],
-                           pkt_values['Azimuth Current 2'][3],
-                           pkt_values['Elevation Current 1'][3],
-                           pkt_values['Boresight Current 1'][3],
-                           pkt_values['Boresight Current 2'][3],
-                           pkt_values['Day'][4],
-                           pkt_values['Time_UDP'][4],
-                           pkt_values['Corrected Azimuth'][4],
-                           pkt_values['Corrected Elevation'][4],
-                           pkt_values['Corrected Boresight'][4],
-                           pkt_values['Raw Azimuth'][4],
-                           pkt_values['Raw Elevation'][4],
-                           pkt_values['Raw Boresight'][4],
-                           pkt_values['Azimuth Current 1'][4],
-                           pkt_values['Azimuth Current 2'][4],
-                           pkt_values['Elevation Current 1'][4],
-                           pkt_values['Boresight Current 1'][4],
-                           pkt_values['Boresight Current 2'][4],
-                           pkt_values['Day'][5],
-                           pkt_values['Time_UDP'][5],
-                           pkt_values['Corrected Azimuth'][5],
-                           pkt_values['Corrected Elevation'][5],
-                           pkt_values['Corrected Boresight'][5],
-                           pkt_values['Raw Azimuth'][5],
-                           pkt_values['Raw Elevation'][5],
-                           pkt_values['Raw Boresight'][5],
-                           pkt_values['Azimuth Current 1'][5],
-                           pkt_values['Azimuth Current 2'][5],
-                           pkt_values['Elevation Current 1'][5],
-                           pkt_values['Boresight Current 1'][5],
-                           pkt_values['Boresight Current 2'][5],
-                           pkt_values['Day'][6],
-                           pkt_values['Time_UDP'][6],
-                           pkt_values['Corrected Azimuth'][6],
-                           pkt_values['Corrected Elevation'][6],
-                           pkt_values['Corrected Boresight'][6],
-                           pkt_values['Raw Azimuth'][6],
-                           pkt_values['Raw Elevation'][6],
-                           pkt_values['Raw Boresight'][6],
-                           pkt_values['Azimuth Current 1'][6],
-                           pkt_values['Azimuth Current 2'][6],
-                           pkt_values['Elevation Current 1'][6],
-                           pkt_values['Boresight Current 1'][6],
-                           pkt_values['Boresight Current 2'][6],
-                           pkt_values['Day'][7],
-                           pkt_values['Time_UDP'][7],
-                           pkt_values['Corrected Azimuth'][7],
-                           pkt_values['Corrected Elevation'][7],
-                           pkt_values['Corrected Boresight'][7],
-                           pkt_values['Raw Azimuth'][7],
-                           pkt_values['Raw Elevation'][7],
-                           pkt_values['Raw Boresight'][7],
-                           pkt_values['Azimuth Current 1'][7],
-                           pkt_values['Azimuth Current 2'][7],
-                           pkt_values['Elevation Current 1'][7],
-                           pkt_values['Boresight Current 1'][7],
-                           pkt_values['Boresight Current 2'][7],
-                           pkt_values['Day'][8],
-                           pkt_values['Time_UDP'][8],
-                           pkt_values['Corrected Azimuth'][8],
-                           pkt_values['Corrected Elevation'][8],
-                           pkt_values['Corrected Boresight'][8],
-                           pkt_values['Raw Azimuth'][8],
-                           pkt_values['Raw Elevation'][8],
-                           pkt_values['Raw Boresight'][8],
-                           pkt_values['Azimuth Current 1'][8],
-                           pkt_values['Azimuth Current 2'][8],
-                           pkt_values['Elevation Current 1'][8],
-                           pkt_values['Boresight Current 1'][8],
-                           pkt_values['Boresight Current 2'][8],
-                           pkt_values['Day'][9],
-                           pkt_values['Time_UDP'][9],
-                           pkt_values['Corrected Azimuth'][9],
-                           pkt_values['Corrected Elevation'][9],
-                           pkt_values['Corrected Boresight'][9],
-                           pkt_values['Raw Azimuth'][9],
-                           pkt_values['Raw Elevation'][9],
-                           pkt_values['Raw Boresight'][9],
-                           pkt_values['Azimuth Current 1'][9],
-                           pkt_values['Azimuth Current 2'][9],
-                           pkt_values['Elevation Current 1'][9],
-                           pkt_values['Boresight Current 1'][9],
-                           pkt_values['Boresight Current 2'][9])
+
+        # Build list for struct
+        _values = []
+        for i in range(self.pkt_size):
+            _values.extend([pkt_values[item][i] for item in UDP_KEYS])
+
+        pack = struct.pack(self.fmt, *_values)
+
         return pack
 
     def run(self):
