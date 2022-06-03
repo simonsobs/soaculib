@@ -14,20 +14,6 @@ class UDP_Sim:
         self.write_port = write_port
         self.data_object = data_object
         self.data = data_object.data
-        print(self.data)
-        # {'Day': 153,
-        #  'Time_UDP': 61070.815473,
-        #  'Corrected Azimuth': 90.0,
-        #  'Corrected Elevation': 90.0,
-        #  'Corrected Boresight': 10.0,
-        #  'Raw Azimuth': 90.0,
-        #  'Raw Elevation': 90.0,
-        #  'Raw Boresight': 10.0,
-        #  'Azimuth Current 1': 0.0,
-        #  'Azimuth Current 2': 0.0,
-        #  'Elevation Current 1': 0.0,
-        #  'Boresight Current 1': 0.0,
-        #  'Boresight Current 2': 0.0}
 
     def read_http(self):
         all_data = self.data_object.data
