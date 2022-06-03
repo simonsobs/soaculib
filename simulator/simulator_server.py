@@ -1,10 +1,13 @@
 import numpy as np
+from threading import Thread
 from flask import Flask, request, jsonify
 
 from master_emulator import DataMaster
+from udp_server import UDP_Sim
 
-app = Flask(__name__)
 satp = DataMaster('Datasets.StatusSATPDetailed8100')
+udp = UDP_Sim(10008, satp)
+app = Flask(__name__)
 
 
 @app.route("/Values", methods=["GET"])
@@ -81,4 +84,10 @@ def upload():
 
 
 if __name__ == "__main__":
-    app.run(host="localhost", port=8102, debug=False)  # , threaded=False, processes=3)
+    flask_kwargs = {'host': 'localhost', 'port': 8102, 'debug': False}
+    #flask_kwargs = {'host': 'localhost', 'port': 8102, 'debug': False, 'threaded': False, 'processes': 3}
+    t1 = Thread(target=app.run, kwargs=flask_kwargs)
+    t2 = Thread(target=udp.run)
+
+    t1.start()
+    t2.start()
