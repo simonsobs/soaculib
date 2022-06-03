@@ -9,14 +9,8 @@ x-log-options:
       max-file: "10"
 
 services:
-  acu-simulator-master:
+  acu-simulator:
     image: soaculib:latest
     <<: *log-options
     network_mode: "host"
-    entrypoint: ["dumb-init", "/usr/local/bin/python", "/app/soaculib/simulator/master_emulator.py"]
-
-  acu-simulator-udp:
-    image: soaculib:latest
-    <<: *log-options
-    network_mode: "host"
-    entrypoint: ["dumb-init", "./wait-for", "localhost:8102", "--", "/usr/local/bin/python", "./simulator/acu_sim_udp.py"]
+    entrypoint: ["dumb-init", "/usr/local/bin/python", "/app/soaculib/simulator/simulator_server.py"]

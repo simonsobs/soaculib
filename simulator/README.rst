@@ -10,12 +10,11 @@ To setup, first build the docker image::
     $ cd soaculib/
     $ docker build -t soaculib .
 
-Then you can startup the two simulator containers with::
+Then you can startup the simulator container with::
 
-    $ docker run -d --network="host" --rm soaculib python /app/soaculib/simulator/master_emulator.py
-    $ docker run -d --network="host" --rm soaculib ./wait-for localhost:8102 -- python ./simulator/acu_sim_udp.py
+    $ docker run -d --network="host" --rm soaculib python /app/soaculib/simulator/simulator_server.py
 
-There is also a ``docker-compose.yaml`` provided to start the two containers::
+There is also a ``docker-compose.yaml`` provided to start the container::
 
     $ cd simulator/
     $ docker-compose up -d
