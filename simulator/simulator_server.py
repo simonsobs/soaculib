@@ -13,7 +13,7 @@ app = Flask(__name__)
 @app.route("/Values", methods=["GET"])
 def get_data():
     data = satp.values()
-    identifier = request.form.get('identifier')
+    identifier = request.args.get('identifier')
     form = request.args.get('format')
     if identifier == 'DataSets.StatusSATPDetailed8100':
         if form == 'JSON':
