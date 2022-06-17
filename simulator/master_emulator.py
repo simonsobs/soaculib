@@ -91,7 +91,12 @@ class DataMaster:
                       'azflags': np.array([]),
                       'free': 10000}
 
-    def update_timestamp(self, now):
+    def update_timestamp(self):
+        """Update 'Day', 'Time_UDP', Year', and 'Time' fields in data dict with
+        the current time.
+
+        """
+        now = dt.datetime.now(TZ)
         new_data = self.data
         nowtime, nowday, nowhms = find_day_of_year(now)
         new_data['Day'] = nowday
@@ -188,7 +193,7 @@ class DataMaster:
 
         nowtimestamp = current_time
         while nowtimestamp < max(aztimes):
-            self.update_timestamp(dt.datetime.now(TZ))
+            self.update_timestamp()
             input_az = float(azcurve(nowtimestamp))
             input_el = float(elcurve(nowtimestamp))
             self.update_positions(input_az, input_el, self.data['Raw Boresight'])
@@ -210,7 +215,7 @@ class DataMaster:
                 self.update_data('Elevation current velocity', float(elslopecurve(nowtimestamp)))
             time.sleep(0.001)
             nowtimestamp = self.data['Time_UDP']
-        self.update_timestamp(dt.datetime.now(TZ))
+        self.update_timestamp()
         self.update_positions(new_az, new_el, self.data['Raw Boresight'])
         self.update_data('Elevation Current 1', 0.0)
         self.update_data('Azimuth Current 1', 0.0)
@@ -246,14 +251,14 @@ class DataMaster:
         bscurve = CubicSpline(bstimes, bss)
         nowtimestamp = current_time
         while nowtimestamp < endtime_bs:
-            self.update_timestamp(dt.datetime.now(TZ))
+            self.update_timestamp()
             self.update_positions(
                 self.data['Raw Azimuth'],
                 self.data['Raw Elevation'],
                 float(
                     bscurve(nowtimestamp)))
             nowtimestamp = self.data['Time_UDP']
-        self.update_timestamp(dt.datetime.now(TZ))
+        self.update_timestamp()
         self.update_positions(self.data['Raw Azimuth'], self.data['Raw Elevation'], new_bs)
 
     def upload_track(self, lines):
@@ -370,7 +375,7 @@ class DataMaster:
                     newel = float(elfit(nowtime))
                     # print('newaz: '+str(newaz))
                     self.update_positions(newaz, newel, self.data['Raw Boresight'])
-                    self.update_timestamp(dt.datetime.now(TZ))
+                    self.update_timestamp()
                     nowtime = self.data['Time_UDP']
                 except ValueError:
                     time.sleep(0.01)
@@ -396,10 +401,10 @@ class DataMaster:
             newel = float(elfit(nowtime))
             self.update_positions(newaz, newel, self.data['Raw Boresight'])
             # time.sleep(0.0001)
-            self.update_timestamp(dt.datetime.now(TZ))
+            self.update_timestamp()
             nowtime = self.data['Time_UDP']
         return True
 
     def values(self):
-        self.update_timestamp(dt.datetime.now(TZ))
+        self.update_timestamp()
         return self.data
