@@ -348,8 +348,8 @@ class DataMaster:
                 fittimes = queue['times'][:10]
                 fitazs = queue['azs'][:10]
                 fitels = queue['els'][:10]
-                azfit = interp1d(fittimes, fitazs)
-                elfit = interp1d(fittimes, fitels)
+                azfit = interp1d(fittimes, fitazs, fill_value="extrapolate")
+                elfit = interp1d(fittimes, fitels, fill_value="extrapolate")
                 discard_num = 10
             for i in range(discard_num):
                 discard_t = self.queue['times'][0]  # self.queue['times'].pop(0)
@@ -398,8 +398,8 @@ class DataMaster:
         final_stretch['azs'] = np.concatenate((final_stretch['azs'], landing['azs']))
         final_stretch['els'] = np.concatenate((final_stretch['els'], landing['els']))
         final_stretch['azflags'] = np.concatenate((final_stretch['azflags'], landing['azflags']))
-        azfit = interp1d(final_stretch['times'], final_stretch['azs'])
-        elfit = interp1d(final_stretch['times'], final_stretch['els'])
+        azfit = interp1d(final_stretch['times'], final_stretch['azs'], fill_value="extrapolate")
+        elfit = interp1d(final_stretch['times'], final_stretch['els'], fill_value="extrapolate")
         nowtime = self.data['Time_UDP']
         while nowtime < final_stretch['times'][-1]:
             newaz = float(azfit(nowtime))
