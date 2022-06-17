@@ -21,13 +21,11 @@ def get_data():
         else:
             return jsonify(data)
     elif identifier.split('.')[1] == 'SkyAxes':
-        alldata = jsonify(data)
-        SkyAxes = {'Azimuth': {'Mode': alldata['Azimuth mode']},
-                   'Elevation': {'Mode': alldata['Elevation mode']},
-                   'Boresight': {'Mode': alldata['Boresight mode']},
-                  } 
+        SkyAxes = {'Azimuth': {'Mode': data['Azimuth mode']},
+                   'Elevation': {'Mode': data['Elevation mode']},
+                   'Boresight': {'Mode': data['Boresight mode']}}
         axis = identifier.split('.')[2]
-        return SkyAxes[axis]['Mode']
+        return jsonify(SkyAxes[axis])
     else:
         return jsonify(data)
 
