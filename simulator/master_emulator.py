@@ -31,41 +31,65 @@ def find_day_of_year(now):
     return current_time, current_day_of_year, current_hms
 
 
+def _initialize_data_dict(dataset):
+    """Load server keys from module and populate with sensible starting values.
+
+    Args:
+        dataset (str): Name of dataset, i.e. 'Datasets.StatusSATPDetailed8100'
+
+    Returns:
+        dict: Data dictionary with all values initialized.
+
+    """
+    data = {}
+    for key, val in sk.status_fields[dataset].items():
+        if val == int:
+            data[key] = 0
+        elif val == bool:
+            data[key] = False
+        elif val == str:
+            data[key] = 'Stop'
+        elif val == float:
+            data[key] = 0.0
+
+    init_now = dt.datetime.now(TZ)
+    init_time, init_day, init_hms = find_day_of_year(init_now)
+    data['Day'] = init_day
+    data['Time_UDP'] = init_hms
+    data['Year'] = init_now.year
+    data['Time'] = init_time
+    data['Azimuth current position'] = 90.
+    data['Raw Azimuth'] = 90.
+    data['Corrected Azimuth'] = 90.
+    data['Elevation current position'] = 90.
+    data['Raw Elevation'] = 90.
+    data['Corrected Elevation'] = 90.
+    data['Boresight current position'] = 10.
+    data['Raw Boresight'] = 10.
+    data['Corrected Boresight'] = 10.
+
+    return data
+
+
 class DataMaster:
+    """ACU Data container class.
+
+    Attributes:
+        data (dict): Dictionary tracking values of internal data registers.
+        queue (dict): Acts as the stack of points being uploaded via
+            UploadPtStack.
+
+    Args:
+        dataset (str): Name of dataset, i.e. 'Datasets.StatusSATPDetailed8100'
+
+    """
     def __init__(self, dataset):
-        self.data = {}
-        self.queue = {
-            'times': np.array(
-                []), 'azs': np.array(
-                []), 'els': np.array(
-                []), 'azflags': np.array(
-                    [])}
-        self.queue['free'] = 10000 - len(self.queue['times'])
-        print('self.queue = ' + str(self.queue))
-        for key, val in sk.status_fields[dataset].items():
-            if val == int:
-                self.data[key] = 0
-            elif val == bool:
-                self.data[key] = False
-            elif val == str:
-                self.data[key] = 'Stop'
-            elif val == float:
-                self.data[key] = 0.0
-        init_now = dt.datetime.now(TZ)
-        init_time, init_day, init_hms = find_day_of_year(init_now)
-        self.data['Day'] = init_day
-        self.data['Time_UDP'] = init_hms
-        self.data['Year'] = init_now.year
-        self.data['Time'] = init_time
-        self.data['Azimuth current position'] = 90.
-        self.data['Raw Azimuth'] = 90.
-        self.data['Corrected Azimuth'] = 90.
-        self.data['Elevation current position'] = 90.
-        self.data['Raw Elevation'] = 90.
-        self.data['Corrected Elevation'] = 90.
-        self.data['Boresight current position'] = 10.
-        self.data['Raw Boresight'] = 10.
-        self.data['Corrected Boresight'] = 10.
+        self.data = _initialize_data_dict(dataset)
+        self.queue = {'times': np.array([]),
+                      'azs': np.array([]),
+                      'els': np.array([]),
+                      'azflags': np.array([]),
+                      'free': 10000}
 
     def update_timestamp(self, now):
         new_data = self.data
