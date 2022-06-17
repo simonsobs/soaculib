@@ -22,7 +22,7 @@ def get_data():
             return jsonify(data)
     elif identifier.split('.')[1] == 'SkyAxes':
         alldata = jsonify(data)
-        SkyAxes = {'Azimuth': {'Mode': alldata['Azimuth mode']i},
+        SkyAxes = {'Azimuth': {'Mode': alldata['Azimuth mode']},
                    'Elevation': {'Mode': alldata['Elevation mode']},
                    'Boresight': {'Mode': alldata['Boresight mode']},
                   } 
