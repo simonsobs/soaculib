@@ -123,6 +123,11 @@ class DataMaster:
         new_data[key] = new_value
         self.data = new_data
 
+    def update_queue(self):
+        """Update the queue, primarily to track the uploaded point stack."""
+        self.queue['free'] = 10000 - len(self.queue['times'])
+        self.update_data('Qty of free program track stack positions', self.queue['free'])
+
     def preset_azel_motion(self, new_az, new_el):
         current_azmode = self.data['Azimuth mode']
         current_elmode = self.data['Elevation mode']
@@ -406,5 +411,16 @@ class DataMaster:
         return True
 
     def values(self):
+        """Update and return the data dict.
+
+        This is called each time the /Values endpoint is hit on the simulator
+        server. Since the ACU Agent is calling this constantly (at roughly 20
+        Hz) we rely on this to trigger updates to the values.
+
+        Returns:
+            dict: The full data dict.
+
+        """
         self.update_timestamp()
+        self.update_queue()
         return self.data
