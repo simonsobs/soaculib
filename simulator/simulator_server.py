@@ -67,6 +67,7 @@ def command():
         elif cmd == "SetAzElMode":
             satp.change_mode(axes=['Azimuth', 'Elevation'], modes=[param, param])
         elif cmd == "SetModes":
+            param = param.split('|')
             new_azmode = param[0]
             new_elmode = param[1]
             satp.change_mode(axes=['Azimuth', 'Elevation'], modes=[new_azmode, new_elmode])
