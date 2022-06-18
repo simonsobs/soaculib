@@ -278,7 +278,7 @@ class DataMaster:
         """
         # Example: '168, 19:11:22.342642; 27.414830; 35.000000; ...'
         acutime = line.split(';')[0]
-        doy = int(acutime.split(', ')[0])
+        #day = int(acutime.split(', ')[0])
         utime = acutime.split(', ')[1]
         hr = float(utime.split(':')[0])
         mn = float(utime.split(':')[1])
@@ -337,31 +337,50 @@ class DataMaster:
 
         self.queue['free'] = 10000 - len(self.queue['times'])
         self.update_data('Qty of free program track stack positions', self.queue['free'])
-        print(len(self.queue['times']))
-        print(len(self.queue['azs']))
-        print(len(self.queue['els']))
-        print(len(self.queue['azflags']))
+        print('times', len(self.queue['times']))
+        print('azs', len(self.queue['azs']))
+        print('els', len(self.queue['els']))
+        print('azflags', len(self.queue['azflags']))
 
     def run_track(self):
         modes = [self.data['Azimuth mode'], self.data['Elevation mode']]
         if modes[0] != 'ProgramTrack':
             return False
+        # queue starts as empty set of 4 empty np arrays, and the number of free spaces (10000)
         queue = self.queue
-        # print(queue)
+
+        # initialize discard queue, used for cubic spline interpolation on
+        # turnarounds
         discard_queue = {'times': [], 'azs': [], 'els': [], 'azflags': []}
         turnaround = False
+
+        # work through 10 items on the stack at a time
         discard_num = 10
+        # while there are more items in the queue than 10
         while len(queue['times']) > discard_num:
             # print('times: ' + str(len(queue['times'])))
             # print('azs: ' + str(len(queue['azs'])))
             # print('els: ' + str(len(queue['els'])))
             # print('flags: ' + str(len(queue['azflags'])))
+
+            # grab front 10 flags, which signal an approaching turnaround
             next10flags = queue['azflags'][:10]
+            turnaround = False
             if 2 in next10flags:
                 turnaround = True
+
+            if not turnaround:
+                # interpolate between next 10 points, produces functions for az
+                # and el
+                fittimes = queue['times'][:10]
+                fitazs = queue['azs'][:10]
+                fitels = queue['els'][:10]
+                azfit = interp1d(fittimes, fitazs, fill_value="extrapolate")
+                elfit = interp1d(fittimes, fitels, fill_value="extrapolate")
+                discard_num = 10
             else:
-                turnaround = False
-            if turnaround:
+                # if we hit a turnaround look at last 10 points, and next 15
+                # perform CubicSpline interpolation for turnaround
                 fittimes = discard_queue['times'][-10:]
                 for i in queue['times'][:15]:
                     fittimes.append(i)
@@ -374,13 +393,9 @@ class DataMaster:
                 azfit = CubicSpline(fittimes, fitazs)
                 elfit = CubicSpline(fittimes, fitels)
                 discard_num = 15
-            else:
-                fittimes = queue['times'][:10]
-                fitazs = queue['azs'][:10]
-                fitels = queue['els'][:10]
-                azfit = interp1d(fittimes, fitazs, fill_value="extrapolate")
-                elfit = interp1d(fittimes, fitels, fill_value="extrapolate")
-                discard_num = 10
+
+            # delete items from queue, but keep a record of them in case we hit
+            # a turnaround
             for i in range(discard_num):
                 discard_t = self.queue['times'][0]  # self.queue['times'].pop(0)
                 discard_az = self.queue['azs'][0]  # self.queue['azs'].pop(0)
@@ -395,15 +410,18 @@ class DataMaster:
                 discard_queue['azs'].append(discard_az)
                 discard_queue['els'].append(discard_el)
                 discard_queue['azflags'].append(discard_flag)
+
+            # wait until beginning of the 10 points we popped off the queue
             nowtime = self.data['Time_UDP']
-            # while nowtime < fittimes[0]:
-            #     time.sleep(0.01)
-            #     nowtime = self.data['Time_UDP']
-            # print('nowtime: ' + str(nowtime))
-            # print('fittimes[-1]: ' + str(fittimes[-1]))
             while nowtime < fittimes[0]:
                 time.sleep(0.1)
                 nowtime = self.data['Time_UDP']
+            # print('nowtime: ' + str(nowtime))
+            # print('fittimes[-1]: ' + str(fittimes[-1]))
+
+            # before we reach the end of the times we popped off the queue,
+            # apply our interpolation and update the self.data object's
+            # positions and timestamps
             while nowtime < fittimes[-1]:
                 try:
                     newaz = float(azfit(nowtime))
@@ -415,8 +433,13 @@ class DataMaster:
                 except ValueError:
                     time.sleep(0.01)
                     nowtime = self.data['Time_UDP']
+            # ???
             queue = self.queue
             # print(queue)
+
+        print(f"4 QUEUE {self.queue}", flush=True)
+        # perform some final motion? -- don't know what this is doing, but it
+        # is getting the agent stuck
         final_stretch = self.queue
         landing = {'times': [], 'azs': [], 'els': [], 'azflags': []}
         for i in range(30):
@@ -424,6 +447,12 @@ class DataMaster:
             landing['azs'].append(final_stretch['azs'][-1])
             landing['els'].append(final_stretch['els'][-1])
             landing['azflags'].append(1)
+        print(f"5 QUEUE {self.queue}", flush=True)  # 9995 points in queue
+        # 5 QUEUE {'times': array([13962.435132, 13962.535332, 13962.635532, 13962.735733, 13962.835933]),
+        #          'azs': array([20.801603, 20.601202, 20.400802, 20.200401, 20. ]),
+        #          'els': array([35., 35., 35., 35., 35.]),
+        #          'azflags': array([1., 1., 1., 1., 0.]),
+        #          'free': 9995}
         final_stretch['times'] = np.concatenate((final_stretch['times'], landing['times']))
         final_stretch['azs'] = np.concatenate((final_stretch['azs'], landing['azs']))
         final_stretch['els'] = np.concatenate((final_stretch['els'], landing['els']))
@@ -431,13 +460,17 @@ class DataMaster:
         azfit = interp1d(final_stretch['times'], final_stretch['azs'], fill_value="extrapolate")
         elfit = interp1d(final_stretch['times'], final_stretch['els'], fill_value="extrapolate")
         nowtime = self.data['Time_UDP']
+        print(f"6 QUEUE {self.queue}", flush=True) # 9965 points in queue -- gets us stuck
         while nowtime < final_stretch['times'][-1]:
+            #print(f"7 QUEUE {self.queue}", flush=True)
             newaz = float(azfit(nowtime))
             newel = float(elfit(nowtime))
             self.update_positions(newaz, newel, self.data['Raw Boresight'])
             # time.sleep(0.0001)
             self.update_timestamp()
             nowtime = self.data['Time_UDP']
+        print(f"8 QUEUE {self.queue}", flush=True)
+
         return True
 
     def values(self):
