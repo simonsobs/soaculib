@@ -266,11 +266,44 @@ class DataMaster:
         self.update_timestamp()
         self.update_positions(self.data['Raw Azimuth'], self.data['Raw Elevation'], new_bs)
 
+    @staticmethod
+    def _calculate_udp_time(line):
+        """Calculate the UDP Time for a give line uploaded to the queue.
+
+        For more on the format see `upload_track()`.
+
+        Args:
+            line (str): Single decoded line from queue.
+
+        """
+        # Example: '168, 19:11:22.342642; 27.414830; 35.000000; ...'
+        acutime = line.split(';')[0]
+        doy = int(acutime.split(', ')[0])
+        utime = acutime.split(', ')[1]
+        hr = float(utime.split(':')[0])
+        mn = float(utime.split(':')[1])
+        sc = float(utime.split(':')[2])
+        timeudp = hr * 60. * 60. + mn * 60. + sc
+        return timeudp
+
     def upload_track(self, lines):
+        """Upload a track to the queue.
+
+        Args:
+            lines (bytes): 'utf-8' bytes encoded string with points to add to
+                the queue. Delimited by '\r\n'.
+
+        Examples:
+            An example of a single line for upload::
+
+                $ lines = b'168, 19:11:22.342642; 27.414830; 35.000000; 2.0000; 0.0000; 1; 0\r\n'
+
+        """
+        # if we make a PointStack object that's a (or several) queue.Queue(s)
+        # we can just .put() each item into the appropriate queue during the
+        # for loop. Need to understand how the point are used in run_track() first
         slines = lines.decode('utf-8')
         linelist = slines.split('\r\n')
-        doys = []
-        # dtimes = []
         udptimes = []
         azpts = []
         elpts = []
@@ -278,33 +311,30 @@ class DataMaster:
         for line in linelist:
             # print(line)
             if len(line):
-                acutime = line.split(';')[0]
-                doy = int(acutime.split(', ')[0])
-                utime = acutime.split(', ')[1]
-                hr = float(utime.split(':')[0])
-                mn = float(utime.split(':')[1])
-                sc = float(utime.split(':')[2])
+                #   day, utime;           azimuth    elevation  ?       ?       azflag  ?
+                # b'168, 19:11:22.342642; 27.414830; 35.000000; 2.0000; 0.0000; 1;      0\r\n'
+                # we want, 'times', 'azs', 'els', 'azflags' out of this
+
+                # 'times'
+                timeudp = self._calculate_udp_time(line)
+                udptimes.append(timeudp)
+
+                # 'az/el/flag'
                 azpt = float(line.split(';')[1])
                 elpt = float(line.split(';')[2])
                 azflag = int(line.split(';')[5])
-                timeudp = hr * 60. * 60. + mn * 60. + sc
-                doys.append(doy)
-                udptimes.append(timeudp)
                 azpts.append(azpt)
                 elpts.append(elpt)
                 azflags.append(azflag)
+
         # print(self.queue)
         # print('udptimes len: '+str(len(udptimes)))
         # print('azflags len: ' + str(len(azflags)))
-        # for i in range(len(udptimes)):
-        #     self.queue['times'].append(udptimes[i])
-        #     self.queue['azs'].append(azpts[i])
-        #     self.queue['els'].append(elpts[i])
-        #     self.queue['azflags'].append(azflags[i])
         self.queue['times'] = np.concatenate((self.queue['times'], udptimes))
         self.queue['azs'] = np.concatenate((self.queue['azs'], azpts))
         self.queue['els'] = np.concatenate((self.queue['els'], elpts))
         self.queue['azflags'] = np.concatenate((self.queue['azflags'], azflags))
+
         self.queue['free'] = 10000 - len(self.queue['times'])
         self.update_data('Qty of free program track stack positions', self.queue['free'])
         print(len(self.queue['times']))
