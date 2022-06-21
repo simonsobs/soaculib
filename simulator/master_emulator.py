@@ -438,8 +438,7 @@ class DataMaster:
             # print(queue)
 
         print(f"4 QUEUE {self.queue}", flush=True)
-        # perform some final motion? -- don't know what this is doing, but it
-        # is getting the agent stuck
+        # uploads the last point 30 times with azflag = 1, I think to clear out the queue?
         final_stretch = self.queue
         landing = {'times': [], 'azs': [], 'els': [], 'azflags': []}
         for i in range(30):
@@ -447,6 +446,7 @@ class DataMaster:
             landing['azs'].append(final_stretch['azs'][-1])
             landing['els'].append(final_stretch['els'][-1])
             landing['azflags'].append(1)
+        print("LANDING:", landing, flush=True)
         print(f"5 QUEUE {self.queue}", flush=True)  # 9995 points in queue
         # 5 QUEUE {'times': array([13962.435132, 13962.535332, 13962.635532, 13962.735733, 13962.835933]),
         #          'azs': array([20.801603, 20.601202, 20.400802, 20.200401, 20. ]),
@@ -459,17 +459,29 @@ class DataMaster:
         final_stretch['azflags'] = np.concatenate((final_stretch['azflags'], landing['azflags']))
         azfit = interp1d(final_stretch['times'], final_stretch['azs'], fill_value="extrapolate")
         elfit = interp1d(final_stretch['times'], final_stretch['els'], fill_value="extrapolate")
+
+        stop_time = final_stretch['times'][-1]  # save the last time before we delete it
+        # delete items from the queue, don't need to keep record this time
+        # note: this very briefly puts the queue size over 10k, but that gets
+        # fixed on the next call to update_queue() when the queue is empty
+        discard_num = len(final_stretch['times'])
+        for i in range(discard_num):
+            self.queue['times'] = np.delete(self.queue['times'], 0)
+            self.queue['azs'] = np.delete(self.queue['azs'], 0)
+            self.queue['els'] = np.delete(self.queue['els'], 0)
+            self.queue['azflags'] = np.delete(self.queue['azflags'], 0)
+            self.queue['free'] += 1
+
         nowtime = self.data['Time_UDP']
-        print(f"6 QUEUE {self.queue}", flush=True) # 9965 points in queue -- gets us stuck
-        while nowtime < final_stretch['times'][-1]:
-            #print(f"7 QUEUE {self.queue}", flush=True)
+        print(f"6 QUEUE {self.queue}", flush=True)
+        while nowtime < stop_time:
             newaz = float(azfit(nowtime))
             newel = float(elfit(nowtime))
             self.update_positions(newaz, newel, self.data['Raw Boresight'])
             # time.sleep(0.0001)
             self.update_timestamp()
             nowtime = self.data['Time_UDP']
-        print(f"8 QUEUE {self.queue}", flush=True)
+        print(f"7 QUEUE {self.queue}", flush=True)
 
         return True
 
