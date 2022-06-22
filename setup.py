@@ -9,4 +9,7 @@ setup(name='soaculib',
       package_dir={'soaculib': 'python'},
       packages=['soaculib'],
       scripts=['scripts/acu-headsup', 'scripts/acu-special'],
+      package_data={
+          'soaculib': ['acu-configs.yaml']
+      },
 )

@@ -1,227 +1,101 @@
-import socket
+"""Support for loading ACU configs.
 
-"""Library of basic configurations for ACUs.
+The soaculib config file is a yaml file describing one or more ACUs.
+See the load() function for the list of filenames that will be tried.
+If you want the envvar, it's ACU_CONFIG.
 
-When you 'guess' the config, it will be loaded from the CONFIGS dict
-based on socket.gethostname().
+See acu-configs.yaml, in the package directory, for example syntax.
 
 """
 
-CONFIGS = {
+import os
+import socket
+import yaml
 
-    # Simulator ACU at UCologne.
-    'nanten-db':   {
-        # Address of the "remote" interface.
-        'base_url': 'http://172.16.5.95:8100',
-        # Address of the read-only "remote" interface.
-        'readonly_url': 'http://172.16.5.95:8110',
-        # Address of the "developer" interface.
-        'dev_url': 'http://172.16.5.95:8080',
-        # Local interface IP.
-        'interface_ip': '172.16.5.10',
-        # Sleep time to wait for motion to end.
-        'motion_waittime': 1.0,
-        # List of streams to configure.
-        'streams': {
-            'main': {
-                'acu_name': 'PositionBroadcast',
-                'port': 10000,
-                'schema': 'v2'
-            },
-            'ext': {
-                'acu_name': 'PositionBroadcastExt',
-                'port': 10001,
-                'active': False,
-            },
-        },
-        'status': {
-            'status_name': 'Datasets.StatusSATPDetailed8100',
-#            'status_name': 'Datasets.StatusCCATDetailed8100',
-            },
+#: Global variable to hold the most-recent config block from calling
+#: load().
+cache = None
 
-        # For dataset description (see _platforms).
-        'platform': 'satp',
-        'motion_limits': {
-            'azimuth': {
-                'lower': -90.0,
-                'upper': 480.0,
-            },
-            'elevation': {
-                'lower': 20.0,
-                'upper': 90.0,
-            },
-            'boresight': {
-                'lower': 0.0,
-                'upper': 360.,
-            },
-            'acc': (8./1.88),
-        },
+def load(config_file=None, update_cache=True):
+    """Load ACU configuration file and return the contents (as a dict).
+    By default, this will also update (replace) the internal
+    configuration cache.
 
-        # Deprecated stream configs...
-        'broadcaster_url': 'http://172.16.5.95:8080',
-        'PositionBroadcast_target': '172.16.5.10:10000',
-        'PositionBroadcastExt_target': '172.16.5.10:10001',
-    },
+    If the config_file argument is passed, that file will be used.  If
+    not, then the value of the ACU_CONFIG environment variable is
+    used.  If that envvar is not set, then ~/.acu.yaml and
+    /etc/acu.yaml are tried.
 
-    # SATP1 ACU at Vertex.
-    'satp1': {
-        # Address of the "remote" interface.
-        'base_url': 'http://192.168.1.111:8100',
-        # Address of the read-only "remote" interface.
-        'readonly_url': 'http://192.168.1.111:8110',
-        # Address of the "developer" interface.
-        'dev_url': 'http://192.168.1.111:8080',
-        # Local interface IP.
-        'interface_ip': '192.168.1.110',
-        'motion_waittime': 5.0,
-        # List of streams to configure.
-        'streams': {
-            'main': {
-                'acu_name': 'PositionBroadcast',
-                'port': 10004, #???
-                'schema': 'v2'
-            },
-            'ext': {
-                'acu_name': 'PositionBroadcastExt',
-                'port': 10005, #???
-                'active': False,
-            },
-        },
-        'status': {
-            'status_name': 'Datasets.StatusSATPDetailed8100',
-            },
+    Finally, the acu-configs.yaml in the installed module is loaded.
+    This is likely to go away soon.
 
-        # For dataset description (see _platforms).
-        'platform': 'satp',
-        'motion_limits': {
-            'azimuth': {
-                'lower': -90.0,
-                'upper': 480.0,
-            },
-            'elevation': {
-                'lower': 20.0,
-                'upper': 50.0,
-            },
-            'boresight': {
-                'lower': 0.0,
-                'upper': 360.,
-            },
-            'acc': (8./1.88),
-        },
-        # Deprecated stream configs...
-        'broadcaster_url': '192.168.1.111:8080',
-        'PositionBroadcast_target': '192.168.1.111:10001',
-        'PositionBroadcastExt_target': '192.168.1.111:10002',
-    },
+    If none of those exist, an exception is raised.
 
-    # SATP2 ACU at Vertex.
-    'satp2': {
-        # Address of the "remote" interface.
-        'base_url': 'http://192.168.1.109:8100',
-        # Address of the read-only "remote" interface.
-        'readonly_url': 'http://192.168.1.109:8110',
-        # Address of the "developer" interface.
-        'dev_url': 'http://192.168.1.109:8080',
-        # Local interface IP.
-        'interface_ip': '192.168.1.110',
-        'motion_waittime': 5.0,
-        # List of streams to configure.
-        'streams': {
-            'main': {
-                'acu_name': 'PositionBroadcast',
-                'port': 10001,
-                'schema': 'v2'
-            },
-            'ext': {
-                'acu_name': 'PositionBroadcastExt',
-                'port': 10002,
-                'active': False,
-            },
-        },
-        'status': {
-            'status_name': 'Datasets.StatusSATPDetailed8100',
-            },
+    """
+    global cache
+    things_to_try = [
+        (config_file, True, 'user-specified file "{filename}"'),
+        (os.getenv('ACU_CONFIG'), True, 'environment variable ACU_CONFIG="{filename}"'),
+        (os.path.expanduser('~/.acu.yaml'), False, 'local user config file "{filename}"'),
+        ('/etc/acu.yaml', False, 'global config file "{filename}"'),
+        (os.path.join(os.path.split(__file__)[0], 'acu-configs.yaml'), False, 'acu-configs.yaml'),
+    ]
+    for filename, fail_on_missing, desc_format in things_to_try:
+        if filename is None:
+            continue
+        if os.path.exists(filename):
+            config = yaml.safe_load(open(filename, 'r').read())
+            break
+        if fail_on_missing:
+            raise RuntimeError("Config file not found; " +
+                               desc_format.format(filename=filename))
+    else:
+        raise RuntimeError("Could not find an ACU config file.  See docs "
+                           "or try putting one in ~/.acu.yaml or /etc/acu.yaml.")
+    # Process config...
+    if update_cache:
+        cache = config
+    return config
 
-        # For dataset description (see _platforms).
-        'platform': 'satp',
-        'motion_limits': {
-            'azimuth': {
-                'lower': -90.0,
-                'upper': 480.0,
-            },
-            'elevation': {
-                'lower': 20.0,
-                'upper': 50.0,
-            },
-            'boresight': {
-                'lower': 0.0,
-                'upper': 360.,
-            },
-            'acc': (8./1.88),
-        },
-        # Deprecated stream configs...
-        'broadcaster_url': '192.168.1.109:8080',
-        'PositionBroadcast_target': '192.168.1.109:10001',
-        'PositionBroadcastExt_target': '192.168.1.109:10002',
-    },
-
-    # This is not an ACU config.
-    '_stream_schemas': {
-        'v0': {
-            'format': '<iddd',
-            'fields': ['Day', 'Time', 'Azimuth', 'Elevation']
-            },
-        'v1': {
-            'format': '<iddddd',
-            'fields': ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Raw_Azimuth', 'Raw_Elevation']
-            },
-        'v2':{
-            'format': '<idddddddddddd',
-            'fields': ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Corrected_Boresight', 'Raw_Azimuth', 'Raw_Elevation', 'Raw_Boresight', 'Azimuth_Current_1', 'Azimuth_Current_2', 'Elevation_Current_1', 'Boresight_Current_1', 'Boresight_Current_2']
-            }
-    },
-
-    # This is not an ACU config.
-    '_platforms': {
-        'satp': {
-            'default_dataset': 'satp',
-            'datasets': [
-                ('satp',       'DataSets.StatusSATPDetailed8100'),
-                ('general',    'DataSets.StatusGeneral8100'),
-                ('extra',      'DataSets.StatusExtra8100'),
-                ('third',      'DataSets.Status3rdAxis'),
-                ('faults',     'DataSets.StatusDetailedFaults'),
-                ('pointing',   'DataSets.CmdPointingCorrection'),
-                ('spem',       'DataSets.CmdSPEMParameter'),
-                ('weather',    'DataSets.CmdWeatherStation'),
-                ('azimuth',    'Antenna.SkyAxes.Azimuth'),
-                ('elevation',  'Antenna.SkyAxes.Elevation'),
-            ],
-            },
-        },
-    
-}
 
 def guess_config(hostname):
     """Return an ACU config block.  The "hostname" argument can be any
     of:
+
     - a dict, in which case it is simply returned to the user.
-    - a string giving a hostname in CONFIGS, in which case
-      CONFIGS[hostname] is returned.
+    - a string corresponding to one of the devices listed in the
+      config file, in which case devices[hostname] is returned.
     - the string 'guess', in which case the current system hostname is
-      determined and the config looked up in CONFIGS.
+      determined and that block is returned from hostname.
+
+    Note that if the devices dict includes an entry called "_default",
+    then that will be returned if all else fails.
 
     """
+    if cache is None:
+        load()
+
+    devices = cache.get('devices', {})
+
     if isinstance(hostname, dict):
         return hostname
     if hostname == 'guess':
         hostname = socket.gethostname()
-    if not hostname in CONFIGS:
-        raise ValueError('No block for system "%s" in CONFIGS!' % hostname)
-    return CONFIGS[hostname]
+    if not hostname in devices:
+        if '_default' in devices:
+            hostname = default
+        else:
+            raise ValueError('No block for system "%s" (and no _default) in config!' % hostname)
+    return devices[hostname]
 
 def get_stream_schema(name):
     """
-    Returns the _stream_schemas entry for name.
+    Returns the stream_schemas entry for name.
     """
-    return CONFIGS['_stream_schemas'][name]
+    return cache['stream_schemas'][name]
+
+def get_datasets(platform):
+    """
+    Returns the datasets entry for the given platform.
+    """
+    return cache['datasets'][platform]
