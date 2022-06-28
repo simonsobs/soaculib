@@ -390,8 +390,15 @@ class DataMaster:
                 fitels = discard_queue['els'][-10:]
                 for k in queue['els'][:15]:
                     fitels.append(k)
-                azfit = CubicSpline(fittimes, fitazs)
-                elfit = CubicSpline(fittimes, fitels)
+                try:
+                    azfit = CubicSpline(fittimes, fitazs)
+                    elfit = CubicSpline(fittimes, fitels)
+                except ValueError:
+                    print('Error in CubicSpline computation')
+                    print('TIMES:', fittimes)
+                    print('AZ:', fitazs)
+                    print('EL:', fitazs)
+                    raise ValueError
                 discard_num = 15
 
             # delete items from queue, but keep a record of them in case we hit
