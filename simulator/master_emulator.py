@@ -97,31 +97,25 @@ class DataMaster:
 
         """
         now = dt.datetime.now(TZ)
-        new_data = self.data
         nowtime, nowday, nowhms = find_day_of_year(now)
-        new_data['Day'] = nowday
-        new_data['Time_UDP'] = nowhms
-        new_data['Year'] = now.year
-        new_data['Time'] = nowtime
-        self.data = new_data
+        self.data['Day'] = nowday
+        self.data['Time_UDP'] = nowhms
+        self.data['Year'] = now.year
+        self.data['Time'] = nowtime
 
     def update_positions(self, new_az, new_el, new_bs):
-        new_data = self.data
-        new_data['Azimuth current position'] = new_az
-        new_data['Raw Azimuth'] = new_az
-        new_data['Corrected Azimuth'] = new_az
-        new_data['Elevation current position'] = new_el
-        new_data['Raw Elevation'] = new_el
-        new_data['Corrected Elevation'] = new_el
-        new_data['Boresight current position'] = new_bs
-        new_data['Raw Boresight'] = new_bs
-        new_data['Corrected Boresight'] = new_bs
-        self.data = new_data
+        self.data['Azimuth current position'] = new_az
+        self.data['Raw Azimuth'] = new_az
+        self.data['Corrected Azimuth'] = new_az
+        self.data['Elevation current position'] = new_el
+        self.data['Raw Elevation'] = new_el
+        self.data['Corrected Elevation'] = new_el
+        self.data['Boresight current position'] = new_bs
+        self.data['Raw Boresight'] = new_bs
+        self.data['Corrected Boresight'] = new_bs
 
     def update_data(self, key, new_value):
-        new_data = self.data
-        new_data[key] = new_value
-        self.data = new_data
+        self.data[key] = new_value
 
     def update_queue(self):
         """Update the queue, primarily to track the uploaded point stack."""
@@ -232,10 +226,8 @@ class DataMaster:
     def change_mode(self, axes=[], modes=[]):
         if len(axes) != len(modes):
             return
-        new_data = self.data
         for i in range(len(axes)):
-            new_data[axes[i] + " mode"] = modes[i]
-        self.data = new_data
+            self.data[axes[i] + " mode"] = modes[i]
 
     def preset_bs_motion(self, new_bs):
         current_bs = self.data['Raw Boresight']
