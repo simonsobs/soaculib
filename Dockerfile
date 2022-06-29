@@ -10,6 +10,8 @@ RUN chmod +x ./wait-for
 WORKDIR /app/soaculib/
 
 # Take advantage of build cache when working on simulator/
+COPY versioneer.py /app/soaculib/
+COPY setup.cfg /app/soaculib/
 COPY python/ /app/soaculib/python/
 COPY scripts/ /app/soaculib/scripts/
 COPY setup.py /app/soaculib/
