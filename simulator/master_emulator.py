@@ -437,33 +437,33 @@ class DataMaster:
                     nowtime = self.data['Time_UDP']
 
         print(f"4 QUEUE {self.queue}", flush=True)
-        # uploads the last point 30 times with azflag = 1, I think to clear out the queue?
-        final_stretch = self.queue
+        # final_stretch
+        # uploads the last point 30 times with azflag = 1, meant to emulate scan stopping behavior
         landing = {'times': [], 'azs': [], 'els': [], 'azflags': []}
         for i in range(30):
-            landing['times'].append(final_stretch['times'][-1] + 0.1)
-            landing['azs'].append(final_stretch['azs'][-1])
-            landing['els'].append(final_stretch['els'][-1])
+            landing['times'].append(queue['times'][-1] + 0.1)
+            landing['azs'].append(queue['azs'][-1])
+            landing['els'].append(queue['els'][-1])
             landing['azflags'].append(1)
         print("LANDING:", landing, flush=True)
         print(f"5 QUEUE {self.queue}", flush=True)  # 9995 points in queue
-        # 5 QUEUE {'times': array([13962.435132, 13962.535332, 13962.635532, 13962.735733, 13962.835933]),
-        #          'azs': array([20.801603, 20.601202, 20.400802, 20.200401, 20. ]),
-        #          'els': array([35., 35., 35., 35., 35.]),
-        #          'azflags': array([1., 1., 1., 1., 0.]),
+        # 5 QUEUE {'times': [13962.435132, 13962.535332, 13962.635532, 13962.735733, 13962.835933],
+        #          'azs': [20.801603, 20.601202, 20.400802, 20.200401, 20. ],
+        #          'els': [35., 35., 35., 35., 35.],
+        #          'azflags': [1., 1., 1., 1., 0.],
         #          'free': 9995}
-        final_stretch['times'].extend(landing['times'])
-        final_stretch['azs'].extend(landing['azs'])
-        final_stretch['els'].extend(landing['els'])
-        final_stretch['azflags'].extend(landing['azflags'])
-        azfit = interp1d(final_stretch['times'], final_stretch['azs'], fill_value="extrapolate")
-        elfit = interp1d(final_stretch['times'], final_stretch['els'], fill_value="extrapolate")
+        queue['times'].extend(landing['times'])
+        queue['azs'].extend(landing['azs'])
+        queue['els'].extend(landing['els'])
+        queue['azflags'].extend(landing['azflags'])
+        azfit = interp1d(queue['times'], queue['azs'], fill_value="extrapolate")
+        elfit = interp1d(queue['times'], queue['els'], fill_value="extrapolate")
 
-        stop_time = final_stretch['times'][-1]  # save the last time before we delete it
+        stop_time = queue['times'][-1]  # save the last time before we delete it
         # delete items from the queue, don't need to keep record this time
         # note: this very briefly puts the queue size over 10k, but that gets
         # fixed on the next call to update_queue() when the queue is empty
-        discard_num = len(final_stretch['times'])
+        discard_num = len(queue['times'])
         for i in range(discard_num):
             queue['times'].pop(0)
             queue['azs'].pop(0)
