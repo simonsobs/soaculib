@@ -85,11 +85,21 @@ class DataMaster:
     """
     def __init__(self, dataset):
         self.data = _initialize_data_dict(dataset)
-        self.queue = {'times': np.array([]),
-                      'azs': np.array([]),
-                      'els': np.array([]),
-                      'azflags': np.array([]),
-                      'free': 10000}
+        self.queue = self._initialize_queue()
+
+    @staticmethod
+    def _initialize_queue():
+        queue = {'times': np.array([]),
+                 'azs': np.array([]),
+                 'els': np.array([]),
+                 'azflags': np.array([]),
+                 'free': 10000}
+
+        return queue
+
+    def clear_queue(self):
+        """Clear the queue by reinitializing it as empty."""
+        self.queue = self._initialize_queue()
 
     def update_timestamp(self):
         """Update 'Day', 'Time_UDP', Year', and 'Time' fields in data dict with

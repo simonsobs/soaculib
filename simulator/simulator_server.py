@@ -51,12 +51,7 @@ def command():
             return 'command not found'
     elif identifier == "DataSets.CmdTimePositionTransfer":
         if cmd == "Clear Stack":
-            satp.queue = {
-                'times': np.array(
-                    []), 'azs': np.array(
-                    []), 'els': np.array(
-                    []), 'azflags': np.array(
-                    []), 'free': 10000}
+            satp.clear_queue()
             satp.update_data('Qty of free program track stack positions', satp.queue['free'])
         else:
             return 'command not found'
