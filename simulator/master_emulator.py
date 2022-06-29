@@ -3,6 +3,7 @@ import time
 import datetime as dt
 from scipy.interpolate import CubicSpline, interp1d
 import server_keys as sk
+from threading import Thread
 
 TZ = dt.timezone.utc
 
@@ -487,13 +488,26 @@ class DataMaster:
         """Update and return the data dict.
 
         This is called each time the /Values endpoint is hit on the simulator
-        server. Since the ACU Agent is calling this constantly (at roughly 20
-        Hz) we rely on this to trigger updates to the values.
+        server.
 
         Returns:
             dict: The full data dict.
 
         """
-        self.update_timestamp()
-        self.update_queue()
         return self.data
+
+    def _run_background_updates(self):
+        while True:
+            self.update_timestamp()
+            self.update_queue()
+            time.sleep(0.02)
+
+    def run(self):
+        """Run background updates.
+
+        This starts a thread that continuously updates the timestamps and
+        queue, and should be called after initialization.
+
+        """
+        update_thread = Thread(target=self._run_background_updates)
+        update_thread.start()

@@ -86,6 +86,9 @@ def upload():
 
 
 if __name__ == "__main__":
+    # start background thread updating internal ACU data
+    satp.run()
+
     flask_kwargs = {'host': 'localhost', 'port': 8102, 'debug': False}
     #flask_kwargs = {'host': 'localhost', 'port': 8102, 'debug': False, 'threaded': False, 'processes': 3}
     t1 = Thread(target=app.run, kwargs=flask_kwargs)
