@@ -89,10 +89,10 @@ class DataMaster:
 
     @staticmethod
     def _initialize_queue():
-        queue = {'times': np.array([]),
-                 'azs': np.array([]),
-                 'els': np.array([]),
-                 'azflags': np.array([]),
+        queue = {'times': [],
+                 'azs': [],
+                 'els': [],
+                 'azflags': [],
                  'free': 10000}
 
         return queue
@@ -332,10 +332,10 @@ class DataMaster:
         # print(self.queue)
         # print('udptimes len: '+str(len(udptimes)))
         # print('azflags len: ' + str(len(azflags)))
-        self.queue['times'] = np.concatenate((self.queue['times'], udptimes))
-        self.queue['azs'] = np.concatenate((self.queue['azs'], azpts))
-        self.queue['els'] = np.concatenate((self.queue['els'], elpts))
-        self.queue['azflags'] = np.concatenate((self.queue['azflags'], azflags))
+        self.queue['times'].extend(udptimes)
+        self.queue['azs'].extend(azpts)
+        self.queue['els'].extend(elpts)
+        self.queue['azflags'].extend(azflags)
 
         self.queue['free'] = 10000 - len(self.queue['times'])
         self.update_data('Qty of free program track stack positions', self.queue['free'])
@@ -348,7 +348,7 @@ class DataMaster:
         modes = [self.data['Azimuth mode'], self.data['Elevation mode']]
         if modes[0] != 'ProgramTrack':
             return False
-        # queue starts as empty set of 4 empty np arrays, and the number of free spaces (10000)
+        # queue starts as empty set of 4 empty lists, and the number of free spaces (10000)
         queue = self.queue
 
         # initialize discard queue, used for cubic spline interpolation on
@@ -406,19 +406,11 @@ class DataMaster:
             # delete items from queue, but keep a record of them in case we hit
             # a turnaround
             for i in range(discard_num):
-                discard_t = self.queue['times'][0]  # self.queue['times'].pop(0)
-                discard_az = self.queue['azs'][0]  # self.queue['azs'].pop(0)
-                discard_el = self.queue['els'][0]  # self.queue['els'].pop(0)
-                discard_flag = self.queue['azflags'][0]  # self.queue['azflags'].pop(0)
-                self.queue['times'] = np.delete(self.queue['times'], 0)
-                self.queue['azs'] = np.delete(self.queue['azs'], 0)
-                self.queue['els'] = np.delete(self.queue['els'], 0)
-                self.queue['azflags'] = np.delete(self.queue['azflags'], 0)
-                self.queue['free'] += 1
-                discard_queue['times'].append(discard_t)
-                discard_queue['azs'].append(discard_az)
-                discard_queue['els'].append(discard_el)
-                discard_queue['azflags'].append(discard_flag)
+                discard_queue['times'].append(queue['times'].pop(0))
+                discard_queue['azs'].append(queue['azs'].pop(0))
+                discard_queue['els'].append(queue['els'].pop(0))
+                discard_queue['azflags'].append(queue['azflags'].pop(0))
+                queue['free'] += 1
 
             # wait until beginning of the 10 points we popped off the queue
             nowtime = self.data['Time_UDP']
@@ -442,9 +434,6 @@ class DataMaster:
                 except ValueError:
                     time.sleep(0.01)
                     nowtime = self.data['Time_UDP']
-            # ???
-            queue = self.queue
-            # print(queue)
 
         print(f"4 QUEUE {self.queue}", flush=True)
         # uploads the last point 30 times with azflag = 1, I think to clear out the queue?
@@ -462,10 +451,10 @@ class DataMaster:
         #          'els': array([35., 35., 35., 35., 35.]),
         #          'azflags': array([1., 1., 1., 1., 0.]),
         #          'free': 9995}
-        final_stretch['times'] = np.concatenate((final_stretch['times'], landing['times']))
-        final_stretch['azs'] = np.concatenate((final_stretch['azs'], landing['azs']))
-        final_stretch['els'] = np.concatenate((final_stretch['els'], landing['els']))
-        final_stretch['azflags'] = np.concatenate((final_stretch['azflags'], landing['azflags']))
+        final_stretch['times'].extend(landing['times'])
+        final_stretch['azs'].extend(landing['azs'])
+        final_stretch['els'].extend(landing['els'])
+        final_stretch['azflags'].extend(landing['azflags'])
         azfit = interp1d(final_stretch['times'], final_stretch['azs'], fill_value="extrapolate")
         elfit = interp1d(final_stretch['times'], final_stretch['els'], fill_value="extrapolate")
 
@@ -475,11 +464,11 @@ class DataMaster:
         # fixed on the next call to update_queue() when the queue is empty
         discard_num = len(final_stretch['times'])
         for i in range(discard_num):
-            self.queue['times'] = np.delete(self.queue['times'], 0)
-            self.queue['azs'] = np.delete(self.queue['azs'], 0)
-            self.queue['els'] = np.delete(self.queue['els'], 0)
-            self.queue['azflags'] = np.delete(self.queue['azflags'], 0)
-            self.queue['free'] += 1
+            queue['times'].pop(0)
+            queue['azs'].pop(0)
+            queue['els'].pop(0)
+            queue['azflags'].pop(0)
+            queue['free'] += 1
 
         nowtime = self.data['Time_UDP']
         print(f"6 QUEUE {self.queue}", flush=True)
