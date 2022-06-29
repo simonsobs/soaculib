@@ -9,6 +9,11 @@ satp = DataMaster('Datasets.StatusSATPDetailed8100')
 udp = AcuUdpServer(10008, satp)
 app = Flask(__name__)
 
+# Useful for turning off Flask logs
+# import logging
+# log = logging.getLogger('werkzeug')
+# log.disabled = True
+
 
 @app.route("/Values", methods=["GET"])
 def get_data():

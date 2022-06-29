@@ -345,6 +345,14 @@ class DataMaster:
         print('els', len(self.queue['els']))
         print('azflags', len(self.queue['azflags']))
 
+    def _update_queue_view(self, group, width):
+        keys = ['times', 'azs', 'els', 'azflags']
+        for key in keys:
+            group[key].append(self.queue[key].pop(0))
+            self.queue['free'] += 1
+            if len(group[key]) > width:
+                group[key].pop(0)
+
     def run_track(self):
         modes = [self.data['Azimuth mode'], self.data['Elevation mode']]
         if modes[0] != 'ProgramTrack':
@@ -352,135 +360,105 @@ class DataMaster:
         # queue starts as empty set of 4 empty lists, and the number of free spaces (10000)
         queue = self.queue
 
-        # initialize discard queue, used for cubic spline interpolation on
-        # turnarounds
-        discard_queue = {'times': [], 'azs': [], 'els': [], 'azflags': []}
-        turnaround = False
+        # only look at this many points from the queue at a time
+        # Note: below code isn't general enough for this to change without other work
+        VIEW_WIDTH = 4
 
-        # work through 10 items on the stack at a time
-        discard_num = 10
-        # while there are more items in the queue than 10
-        while len(queue['times']) > discard_num:
-            # print('times: ' + str(len(queue['times'])))
-            # print('azs: ' + str(len(queue['azs'])))
-            # print('els: ' + str(len(queue['els'])))
-            # print('flags: ' + str(len(queue['azflags'])))
+        # initialize the group of points we'll use for interpolations
+        # Idea here is to only every let this be 4 long, and use that group for the interpolations
+        interp_group = {'times': [], 'azs': [], 'els': [], 'azflags': []}
+        for i in range(VIEW_WIDTH):
+            self._update_queue_view(interp_group, VIEW_WIDTH)
 
-            # grab front 10 flags, which signal an approaching turnaround
-            next10flags = queue['azflags'][:10]
-            turnaround = False
-            if 2 in next10flags:
-                turnaround = True
+        while len(queue['times']):
+            self._update_queue_view(interp_group, VIEW_WIDTH)
 
-            if not turnaround:
-                # interpolate between next 10 points, produces functions for az
-                # and el
-                fittimes = queue['times'][:10]
-                fitazs = queue['azs'][:10]
-                fitels = queue['els'][:10]
+            # Skip the group after a turnaround group [1, 2, 1, 1]
+            # Note: If VIEW_WIDTH ever changes, this'll need more thought,
+            # you'll want to skip another group for every +2 increase in
+            # VIEW_WIDTH
+            if interp_group['azflags'][0] == 2:
+                continue
+
+            fittimes = interp_group['times']
+            fitazs = interp_group['azs']
+            fitels = interp_group['els']
+
+            if interp_group['azflags'] != [1, 2, 1, 1]:
+                # linear interpolation between normal points in a scan
                 azfit = interp1d(fittimes, fitazs, fill_value="extrapolate")
                 elfit = interp1d(fittimes, fitels, fill_value="extrapolate")
-                discard_num = 10
+                valid_until = fittimes[1]
             else:
-                # if we hit a turnaround look at last 10 points, and next 15
-                # perform CubicSpline interpolation for turnaround
-                fittimes = discard_queue['times'][-10:]
-                for i in queue['times'][:15]:
-                    fittimes.append(i)
-                fitazs = discard_queue['azs'][-10:]
-                for j in queue['azs'][:15]:
-                    fitazs.append(j)
-                fitels = discard_queue['els'][-10:]
-                for k in queue['els'][:15]:
-                    fitels.append(k)
+                # cubic spline interpolation for turnarounds
                 try:
                     azfit = CubicSpline(fittimes, fitazs)
                     elfit = CubicSpline(fittimes, fitels)
+                    valid_until = fittimes[int(VIEW_WIDTH/2)]
                 except ValueError:
-                    print('Error in CubicSpline computation')
-                    print('TIMES:', fittimes)
-                    print('AZ:', fitazs)
-                    print('EL:', fitazs)
+                    print('Error in CubicSpline computation', flush=True)
+                    print('TIMES:', fittimes, flush=True)
+                    print('AZ:', fitazs, flush=True)
+                    print('EL:', fitels, flush=True)
                     raise ValueError
-                discard_num = 15
 
-            # delete items from queue, but keep a record of them in case we hit
-            # a turnaround
-            for i in range(discard_num):
-                discard_queue['times'].append(queue['times'].pop(0))
-                discard_queue['azs'].append(queue['azs'].pop(0))
-                discard_queue['els'].append(queue['els'].pop(0))
-                discard_queue['azflags'].append(queue['azflags'].pop(0))
-                queue['free'] += 1
-
-            # wait until beginning of the 10 points we popped off the queue
+            # wait until beginning of the interp_group times
             nowtime = self.data['Time_UDP']
             while nowtime < fittimes[0]:
-                time.sleep(0.1)
+                time.sleep(0.001)
                 nowtime = self.data['Time_UDP']
             # print('nowtime: ' + str(nowtime))
             # print('fittimes[-1]: ' + str(fittimes[-1]))
 
-            # before we reach the end of the times we popped off the queue,
             # apply our interpolation and update the self.data object's
-            # positions and timestamps
-            while nowtime < fittimes[-1]:
+            # positions and timestamps within the time the fit is valid for
+            while nowtime < valid_until:
                 try:
                     newaz = float(azfit(nowtime))
                     newel = float(elfit(nowtime))
-                    # print('newaz: '+str(newaz))
                     self.update_positions(newaz, newel, self.data['Raw Boresight'])
                     self.update_timestamp()
                     nowtime = self.data['Time_UDP']
                 except ValueError:
-                    time.sleep(0.01)
+                    time.sleep(0.001)
                     nowtime = self.data['Time_UDP']
 
+        print("POST LOOP")
         print(f"4 QUEUE {self.queue}", flush=True)
         # final_stretch
         # uploads the last point 30 times with azflag = 1, meant to emulate scan stopping behavior
         landing = {'times': [], 'azs': [], 'els': [], 'azflags': []}
-        for i in range(30):
-            landing['times'].append(queue['times'][-1] + 0.1)
-            landing['azs'].append(queue['azs'][-1])
-            landing['els'].append(queue['els'][-1])
+        offset = 0.5  # realistic settling time, but won't produce as large an
+                      # amplitude in the settling motion (which would be ~0.8 deg)
+        for i in range(4):
+            landing['times'].append(interp_group['times'][-1] + np.median(np.diff(interp_group['times']))*(i+1) + offset)
+            landing['azs'].append(interp_group['azs'][-1])
+            landing['els'].append(interp_group['els'][-1])
             landing['azflags'].append(1)
         print("LANDING:", landing, flush=True)
-        print(f"5 QUEUE {self.queue}", flush=True)  # 9995 points in queue
-        # 5 QUEUE {'times': [13962.435132, 13962.535332, 13962.635532, 13962.735733, 13962.835933],
-        #          'azs': [20.801603, 20.601202, 20.400802, 20.200401, 20. ],
-        #          'els': [35., 35., 35., 35., 35.],
-        #          'azflags': [1., 1., 1., 1., 0.],
-        #          'free': 9995}
-        queue['times'].extend(landing['times'])
-        queue['azs'].extend(landing['azs'])
-        queue['els'].extend(landing['els'])
-        queue['azflags'].extend(landing['azflags'])
-        azfit = interp1d(queue['times'], queue['azs'], fill_value="extrapolate")
-        elfit = interp1d(queue['times'], queue['els'], fill_value="extrapolate")
+        print(f"5 INTERP_GROUP {interp_group}", flush=True)
+        interp_group['times'].extend(landing['times'])
+        interp_group['azs'].extend(landing['azs'])
+        interp_group['els'].extend(landing['els'])
+        interp_group['azflags'].extend(landing['azflags'])
+        print(f"6 INTERP_GROUP {interp_group}", flush=True)
 
-        stop_time = queue['times'][-1]  # save the last time before we delete it
-        # delete items from the queue, don't need to keep record this time
-        # note: this very briefly puts the queue size over 10k, but that gets
-        # fixed on the next call to update_queue() when the queue is empty
-        discard_num = len(queue['times'])
-        for i in range(discard_num):
-            queue['times'].pop(0)
-            queue['azs'].pop(0)
-            queue['els'].pop(0)
-            queue['azflags'].pop(0)
-            queue['free'] += 1
+        azfit = CubicSpline(interp_group['times'], interp_group['azs'])
+        elfit = CubicSpline(interp_group['times'], interp_group['els'])
 
         nowtime = self.data['Time_UDP']
-        print(f"6 QUEUE {self.queue}", flush=True)
-        while nowtime < stop_time:
+        print(f"7 INTERP_GROUP {interp_group}", flush=True)
+        while nowtime < interp_group['times'][-1]:
             newaz = float(azfit(nowtime))
             newel = float(elfit(nowtime))
             self.update_positions(newaz, newel, self.data['Raw Boresight'])
             # time.sleep(0.0001)
             self.update_timestamp()
             nowtime = self.data['Time_UDP']
-        print(f"7 QUEUE {self.queue}", flush=True)
+        print(f"8 INTERP GROUP{interp_group}", flush=True)
+
+        # Even though it's already empty...
+        self.clear_queue()
 
         return True
 
