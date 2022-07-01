@@ -86,7 +86,12 @@ def command():
 def upload():
     upload_lines = request.data
     satp.upload_track(upload_lines)
-    satp.run_track()
+
+    # call run_track() in thread so we can continue to upload points
+    if not satp.running:
+        motion_thread = Thread(target=satp.run_track)
+        motion_thread.start()
+
     return 'ok, command executed'
 
 

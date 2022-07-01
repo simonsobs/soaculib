@@ -79,6 +79,8 @@ class DataMaster:
         data (dict): Dictionary tracking values of internal data registers.
         queue (dict): Acts as the stack of points being uploaded via
             UploadPtStack.
+        running (bool): True if currently running a track (via run_track()),
+            False if not running.
 
     Args:
         dataset (str): Name of dataset, i.e. 'Datasets.StatusSATPDetailed8100'
@@ -87,6 +89,7 @@ class DataMaster:
     def __init__(self, dataset):
         self.data = _initialize_data_dict(dataset)
         self.queue = self._initialize_queue()
+        self.running = False
 
     @staticmethod
     def _initialize_queue():
@@ -357,6 +360,9 @@ class DataMaster:
         modes = [self.data['Azimuth mode'], self.data['Elevation mode']]
         if modes[0] != 'ProgramTrack':
             return False
+
+        self.running = True
+
         # queue starts as empty set of 4 empty lists, and the number of free spaces (10000)
         queue = self.queue
 
@@ -459,6 +465,7 @@ class DataMaster:
 
         # Even though it's already empty...
         self.clear_queue()
+        self.running = False
 
         return True
 
