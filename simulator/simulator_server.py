@@ -9,11 +9,16 @@ satp = DataMaster('Datasets.StatusSATPDetailed8100')
 udp = AcuUdpServer(10008, satp)
 app = Flask(__name__)
 
+# Useful for turning off Flask logs
+# import logging
+# log = logging.getLogger('werkzeug')
+# log.disabled = True
+
 
 @app.route("/Values", methods=["GET"])
 def get_data():
     data = satp.values()
-    identifier = request.form.get('identifier')
+    identifier = request.args.get('identifier')
     form = request.args.get('format')
     if identifier == 'DataSets.StatusSATPDetailed8100':
         if form == 'JSON':
@@ -21,13 +26,11 @@ def get_data():
         else:
             return jsonify(data)
     elif identifier.split('.')[1] == 'SkyAxes':
-        alldata = jsonify(data)
-        SkyAxes = {'Azimuth': {'Mode': alldata['Azimuth mode']i},
-                   'Elevation': {'Mode': alldata['Elevation mode']},
-                   'Boresight': {'Mode': alldata['Boresight mode']},
-                  } 
+        SkyAxes = {'Azimuth': {'Mode': data['Azimuth mode']},
+                   'Elevation': {'Mode': data['Elevation mode']},
+                   'Boresight': {'Mode': data['Boresight mode']}}
         axis = identifier.split('.')[2]
-        return SkyAxes[axis]['Mode']
+        return jsonify(SkyAxes[axis])
     else:
         return jsonify(data)
 
@@ -53,12 +56,7 @@ def command():
             return 'command not found'
     elif identifier == "DataSets.CmdTimePositionTransfer":
         if cmd == "Clear Stack":
-            satp.queue = {
-                'times': np.array(
-                    []), 'azs': np.array(
-                    []), 'els': np.array(
-                    []), 'azflags': np.array(
-                    []), 'free': 10000}
+            satp.clear_queue()
             satp.update_data('Qty of free program track stack positions', satp.queue['free'])
         else:
             return 'command not found'
@@ -69,6 +67,7 @@ def command():
         elif cmd == "SetAzElMode":
             satp.change_mode(axes=['Azimuth', 'Elevation'], modes=[param, param])
         elif cmd == "SetModes":
+            param = param.split('|')
             new_azmode = param[0]
             new_elmode = param[1]
             satp.change_mode(axes=['Azimuth', 'Elevation'], modes=[new_azmode, new_elmode])
@@ -87,11 +86,19 @@ def command():
 def upload():
     upload_lines = request.data
     satp.upload_track(upload_lines)
-    satp.run_track()
+
+    # call run_track() in thread so we can continue to upload points
+    if not satp.running:
+        motion_thread = Thread(target=satp.run_track)
+        motion_thread.start()
+
     return 'ok, command executed'
 
 
 if __name__ == "__main__":
+    # start background thread updating internal ACU data
+    satp.run()
+
     flask_kwargs = {'host': 'localhost', 'port': 8102, 'debug': False}
     #flask_kwargs = {'host': 'localhost', 'port': 8102, 'debug': False, 'threaded': False, 'processes': 3}
     t1 = Thread(target=app.run, kwargs=flask_kwargs)
