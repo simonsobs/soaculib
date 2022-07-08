@@ -105,10 +105,11 @@ class DataMaster:
         """Clear the queue by reinitializing it as empty.
 
         If we're clearing the queue it's likely because we're trying to stop
-        motion, so also set self.running to False.
+        motion, so also set self.running to False, and set the velocity to zero.
         """
         self.queue = self._initialize_queue()
         self.running = False
+        self.update_data('Azimuth current velocity', 0.)  # Since we've stopped
 
     def update_timestamp(self):
         """Update 'Day', 'Time_UDP', Year', and 'Time' fields in data dict with
@@ -361,6 +362,36 @@ class DataMaster:
             if len(group[key]) > width:
                 group[key].pop(0)
 
+    def _compute_velocity(self, times, posfit):
+        """Compute velocities for a given axis.
+
+        Since we're only looking at four points, and the positions during
+        turnarounds are entirely from fits, we use the position fit to first
+        generate positions at a reasonable time spacing. Then take the gradient
+        of those positions. Finally, fit those results, and return the fit.
+
+        Args:
+            times (list): Times from the interpolation group
+            posfit (scipy.interpolate Object): Position fit, valid for the
+                given times. Used to generate positions to compute velocity
+                from.
+
+        Returns:
+            scipy.interpolate._cubic.CubicSpline: CubicSpline fit for
+            velocities, valid for the times given in the input args.
+
+        """
+        # This spacing is sort of arbitrary. Trying to capture enough points
+        # that we get a good estimate of the velocity, without computing too
+        # many.
+        t_spacing = np.mean(np.diff(times))/10
+        vel_times = np.arange(times[0], times[-1], t_spacing)
+        az_pos = posfit(vel_times)
+        vels = np.gradient(az_pos, t_spacing)
+        velfit = CubicSpline(vel_times, vels)
+
+        return velfit
+
     def run_track(self):
         modes = [self.data['Azimuth mode'], self.data['Elevation mode']]
         if modes[0] != 'ProgramTrack':
@@ -417,6 +448,8 @@ class DataMaster:
                     print('EL:', fitels, flush=True)
                     raise ValueError
 
+            velfit = self._compute_velocity(fittimes, azfit)
+
             # wait until beginning of the interp_group times
             nowtime = self.data['Time_UDP']
             while nowtime < fittimes[0]:
@@ -432,6 +465,7 @@ class DataMaster:
                     newaz = float(azfit(nowtime))
                     newel = float(elfit(nowtime))
                     self.update_positions(newaz, newel, self.data['Raw Boresight'])
+                    self.update_data('Azimuth current velocity', float(velfit(nowtime)))
                     self.update_timestamp()
                     nowtime = self.data['Time_UDP']
                 except ValueError:
@@ -462,6 +496,7 @@ class DataMaster:
 
             azfit = CubicSpline(interp_group['times'], interp_group['azs'])
             elfit = CubicSpline(interp_group['times'], interp_group['els'])
+            velfit = self._compute_velocity(interp_group['times'], azfit)
 
             nowtime = self.data['Time_UDP']
             print(f"7 INTERP_GROUP {interp_group}", flush=True)
@@ -469,13 +504,14 @@ class DataMaster:
                 newaz = float(azfit(nowtime))
                 newel = float(elfit(nowtime))
                 self.update_positions(newaz, newel, self.data['Raw Boresight'])
+                self.update_data('Azimuth current velocity', float(velfit(nowtime)))
                 # time.sleep(0.0001)
                 self.update_timestamp()
                 nowtime = self.data['Time_UDP']
             print(f"8 INTERP GROUP{interp_group}", flush=True)
 
-            # Even though it's already empty...
-            self.clear_queue()
+        # Ensures queue is empty, and velocity set to zero
+        self.clear_queue()
 
         return True
 
