@@ -282,9 +282,9 @@ elif args.command == 'dataset':
     if platform is None:
         parser.error('ACU configuration does not specify a "platform".')
     if not isinstance(platform, dict):
-        cfg = aculib.configs.CONFIGS['_platforms'].get(platform)
+        cfg = aculib.configs.get_datasets(platform)
         if cfg is None:
-            parser.error(f'aculib CONFIGS does not describe platform "{platform}".')
+            parser.error(f'The loaded config does not list datasets for platform "{platform}".')
 
     dataset_opts = {short: full_name for short, full_name in cfg['datasets']}
     if args.list:
