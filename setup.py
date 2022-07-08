@@ -24,4 +24,3 @@ setup(name='soaculib',
           ],
       },
       )
-)
