@@ -455,8 +455,6 @@ class DataMaster:
             while nowtime < fittimes[0]:
                 time.sleep(0.001)
                 nowtime = self.data['Time_UDP']
-            # print('nowtime: ' + str(nowtime))
-            # print('fittimes[-1]: ' + str(fittimes[-1]))
 
             # apply our interpolation and update the self.data object's
             # positions and timestamps within the time the fit is valid for
@@ -474,10 +472,7 @@ class DataMaster:
 
         # this'll be true except when we're trying to abort a scan
         if self.running:
-            print("POST LOOP")
-            print(f"4 QUEUE {self.queue}", flush=True)
             # final_stretch
-            # uploads the last point 30 times with azflag = 1, meant to emulate scan stopping behavior
             landing = {'times': [], 'azs': [], 'els': [], 'azflags': []}
             offset = 0.5  # realistic settling time, but won't produce as large an
                           # amplitude in the settling motion (which would be ~0.8 deg)
@@ -486,20 +481,16 @@ class DataMaster:
                 landing['azs'].append(interp_group['azs'][-1])
                 landing['els'].append(interp_group['els'][-1])
                 landing['azflags'].append(1)
-            print("LANDING:", landing, flush=True)
-            print(f"5 INTERP_GROUP {interp_group}", flush=True)
             interp_group['times'].extend(landing['times'])
             interp_group['azs'].extend(landing['azs'])
             interp_group['els'].extend(landing['els'])
             interp_group['azflags'].extend(landing['azflags'])
-            print(f"6 INTERP_GROUP {interp_group}", flush=True)
 
             azfit = CubicSpline(interp_group['times'], interp_group['azs'])
             elfit = CubicSpline(interp_group['times'], interp_group['els'])
             velfit = self._compute_velocity(interp_group['times'], azfit)
 
             nowtime = self.data['Time_UDP']
-            print(f"7 INTERP_GROUP {interp_group}", flush=True)
             while nowtime < interp_group['times'][-1]:
                 newaz = float(azfit(nowtime))
                 newel = float(elfit(nowtime))
@@ -508,7 +499,6 @@ class DataMaster:
                 # time.sleep(0.0001)
                 self.update_timestamp()
                 nowtime = self.data['Time_UDP']
-            print(f"8 INTERP GROUP{interp_group}", flush=True)
 
         # Ensures queue is empty, and velocity set to zero
         self.clear_queue()
