@@ -16,4 +16,15 @@ setup(name='soaculib',
       package_data={
           'soaculib': ['acu-configs.yaml']
       },
-)
+      install_requires=[
+           'requests',
+           'twisted',
+      ],
+      extras_require={
+          'simulator': [
+              'flask',
+              'numpy',
+              'scipy',
+          ],
+      },
+      )
