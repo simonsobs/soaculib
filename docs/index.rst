@@ -10,6 +10,7 @@ User Guide
    soaculib
    acu
    frameworks
+   acu-ftp
 
 
 Indices and tables
