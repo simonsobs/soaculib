@@ -330,6 +330,8 @@ def get_parser():
 
     p = s.add_parser('patch', help="Compare what is on the FTP remote with "
                      "a set of local files defined in the config file.")
+    p.add_argument('--list', action='store_true', help=
+                   "Take no action other than to list the named patch blocks.")
     p.add_argument('--apply', action='store_true', help=
                    "Send new/updated files to the FTP destination.")
     p.add_argument('--clean', action='store_true', help=
@@ -338,7 +340,7 @@ def get_parser():
                    "Instead of applying the local file set, download "
                    "all the files on the FTP remote that differ.")
     p.add_argument('--name', help="Choose a specific patch defined "
-                   "in the config file.")
+                   "in the config file (integer index works too).")
 
     return parser
 
@@ -378,12 +380,27 @@ if __name__ == '__main__':
 
     elif args.action == 'patch':
         patch_blocks = config['patch_blocks']
+        if args.list:
+            print(f'There are {len(patch_blocks)} named patch blocks:')
+            for i, patch_block in enumerate(patch_blocks):
+                print('   %2i.  %s' % (i, patch_block['name']))
+            print()
+            parser.exit()
+
+        patch_index = None
+        try:
+            patch_index = int(args.name)
+        except ValueError:
+            pass
+
         if args.name is None:
             print('Using the first patch block from config file ...')
             patch_block = patch_blocks[0]
         else:
-            for patch_block in patch_blocks:
+            for i, patch_block in enumerate(patch_blocks):
                 if patch_block['name'] == args.name:
+                    break
+                if i == patch_index:
                     break
             else:
                 parser.error('No patch block called "%s"' % args.name)
