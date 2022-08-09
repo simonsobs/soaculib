@@ -190,6 +190,7 @@ datasets:
     'default_dataset': 'satp'
     'datasets':
       - ['satp',       'DataSets.StatusSATPDetailed8100']
+      - ['ccat',        'DataSets.StatusCCatDetailed8100']
       - ['general',    'DataSets.StatusGeneral8100']
       - ['extra',      'DataSets.StatusExtra8100']
       - ['third',      'DataSets.Status3rdAxis']
