@@ -449,6 +449,24 @@ if __name__ == '__main__':
             print()
             parser.exit()
 
+        # Check for onlies on local / remote that differ only in case.
+        # This isn't a perfect solution but will get us through.
+        case_conflicts = {k.lower(): [k] for k in local_only.keys()}
+        for k in remote_only.keys():
+            if k.lower() in case_conflicts:
+                case_conflicts[k.lower()].append(k)
+        case_conflicts = {k: v for k, v in case_conflicts.items() if len(v) > 1}
+        if len(case_conflicts):
+            print('Warning! Local and remote refer to filenames that differ '
+                  'only in case:')
+            for n1, n2 in case_conflicts.values():
+                print('  %s  -->  %s' % (n1, n2))
+            print()
+            print('The files on the left *will* be copied to the remote, but '
+                  'the files on the right *will not* be cleaned from the remote '
+                  '(even if --clean is passed).')
+            print()
+
         # So ... what things to copy, what things to remove?
         to_copy = {}
         remove = []
@@ -457,7 +475,8 @@ if __name__ == '__main__':
         for k in mismatch:
             to_copy[k] = mismatch[k]
         for k in remote_only:
-            remove.append((k, remote_only[k][1]))
+            if not k.lower() in case_conflicts:
+                remove.append((k, remote_only[k][1]))
 
         if args.apply:
             ftp = ftpHelper(ftp_cfg)
