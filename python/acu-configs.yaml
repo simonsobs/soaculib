@@ -17,17 +17,18 @@ devices:
             'main':
                 'acu_name': 'PositionBroadcast'
                 'port': 10000
-                'schema': 'v2'
+                'schema': 'v3'
             'ext':
                 'acu_name': 'PositionBroadcastExt'
                 'port': 10001
                 'active': False
         'status':
-            'status_name': 'Datasets.StatusSATPDetailed8100'
-#            'status_name': 'Datasets.StatusCCATDetailed8100'
+#            'status_name': 'Datasets.StatusSATPDetailed8100'
+            'status_name': 'Datasets.StatusCCATDetailed8100'
 
         # For dataset description (see _platforms).
-        'platform': 'satp'
+#        'platform': 'satp'
+        'platform': 'ccat'
         'motion_limits':
             'azimuth':
                 'lower': -90.0
@@ -184,6 +185,9 @@ stream_schemas:
   v2:
     format: '<idddddddddddd'
     fields: ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Corrected_Boresight', 'Raw_Azimuth', 'Raw_Elevation', 'Raw_Boresight', 'Azimuth_Current_1', 'Azimuth_Current_2', 'Elevation_Current_1', 'Boresight_Current_1', 'Boresight_Current_2']
+  v3:
+    format: '<iddddddddddd'
+    fields: ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Raw_Azimuth', 'Raw_Elevation', 'Azimuth_Current_1', 'Azimuth_Current_2', 'Azimuth_Current_3', 'Azimuth_Current_4', 'Elevation_Current_1', 'Elevation_Current_2']
 
 datasets:
   satp:
