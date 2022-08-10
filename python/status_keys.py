@@ -189,7 +189,7 @@ status_fields = {
             'position_errors' : {
                 'Azimuth average position error': 'Azimuth_avg_position_error',
                 'Azimuth peak posiiton error': 'Azimuth_peak_position_error',
-                'Elevation average position error': 'Elevation_avg_position_error'
+                'Elevation average position error': 'Elevation_avg_position_error',
                 'Elevation peak position error': 'Elevation_peak_position_error',
                 },
             'axis_limits' : {
@@ -267,13 +267,13 @@ status_fields = {
                 'Azimuth amplifier 4 failure': 'Azimuth_amp4_failure',
                 'Azimuth Secondary Encoder Failure': 'Azimuth_secondary_encoder_failure',
                 'Azimuth DC bus 1 failure': 'Az_DCbus1_failure',
-                'Azimuth DC bus 2 failure': 'Az_DCbus2_failure'
+                'Azimuth DC bus 2 failure': 'Az_DCbus2_failure',
                 'Azimuth CAN bus amplifier 1 communication failure': 'Az_CANbus_amp1_comms_failure',
                 'Azimuth CAN bus amplifier 2 communication failure': 'Az_CANbus_amp2_comms_failure',
                 'Azimuth CAN bus amplifier 3 communication failure': 'Az_CANbus_amp3_comms_failure',
                 'Azimuth CAN bus amplifier 4 communication failure': 'Az_CANbus_amp4_comms_failure',
                 'Azimuth encoder failure': 'Azimuth_encoder_failure',
-                'Azimuth tacho failure': 'Azimuth_tacho_failure'
+                'Azimuth tacho failure': 'Azimuth_tacho_failure',
                 'Elevation servo failure': 'Elevation_servo_failure',
                 'Elevation brake 1 failure': 'Elevation_brake1_failure',
                 'Elevation brake 2 failure': 'Elevation_brake2_failure',
@@ -350,7 +350,7 @@ status_fields = {
                 'Yoke B Door Warning - 2nd Floor': 'Warn_YokeBDoor_2ndFloor',
                 'Yoke B Door Warning - 3rd Floor': 'Warn_YokeBDoor_3rdFloor',
                 'Yoke B Door Warning - 4th Floor': 'Warn_YokeBDoor_4thFloor',
-                'Yoke B Door Warning - 5th Floor': 'Warn_YokeBDoor_5thFloor'
+                'Yoke B Door Warning - 5th Floor': 'Warn_YokeBDoor_5thFloor',
                 'Access Hatch Interlock - Roof Yoke B': 'Interlock_AccessHatch_RoofYokeB',
                 'Key Switch Safe Override': 'Key_Switch_Safe_Override',
                 'Key Switch Bypass Emergency Limit': 'Key_Switch_Bypass_Emergency_Limit',
