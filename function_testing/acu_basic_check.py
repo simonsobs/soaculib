@@ -20,17 +20,18 @@ def timecode(acutime):
     comptime = gyear+sec_of_day
     return comptime
 
-def check_status_keys(acu):
+def check_status_keys(acu, fallback_dataset='DataSets.StatusGeneral8100'):
     platform = acu._config.get('platform')
     if platform is None:
         print('Error: ACU configuration does not specify "platform"')
-    if not isinstance(platform, dict):
-        cfg = aculib.configs.CONFIGS['_platforms'].get(platform)
-        if cfg is None:
-            parser.error(f'aculib CONFIGS does not describe platform "{platform}".')
+        print(f'Trying dataset="{fallback_dataset}"')
+        dataset_opts = {}
+        ds = [fallback_dataset]
+    else:
+        cfg = aculib.configs.get_datasets(platform)
+        dataset_opts = {short: full_name for short, full_name in cfg['datasets']}
+        ds = [cfg['default_dataset']]
 
-    dataset_opts = {short: full_name for short, full_name in cfg['datasets']}
-    ds = [cfg['default_dataset']]
     for n in ds:
         m = dataset_opts.get(n, n)
         try:
@@ -45,31 +46,40 @@ def check_status_keys(acu):
         for k,v in t.items():
             status_keys_from_acu.append(k)
         status_keys_from_acu.sort()
-    key_list = status_keys.allkeys(platform)
-    key_list.sort()
-    missing_keys = []
-    extra_keys = []
-    if status_keys_from_acu == key_list:
-        print('Status key lists match')
-        statkey_check = True
-    else:
-        print('Mismatch of status keys. Please compare lists.')
-        for key in key_list:
-            if key not in status_keys_from_acu:
-                print('ACU does not have key %s' % key)
-                extra_keys.append(key)
-        for acukey in status_keys_from_acu:
-            if acukey not in key_list:
-                print('soaculib.status_keys does not have key %s' %acukey)
-                missing_keys.append(acukey)
+
+    if platform is None:
+        print('# Cannot compare keys to list because platform not declared.')
         statkey_check = False
+        missing_keys, extra_keys = [], []
+    else:
+        key_list = status_keys.allkeys(platform)
+        key_list.sort()
+        missing_keys = []
+        extra_keys = []
+        if status_keys_from_acu == key_list:
+            print('Status key lists match')
+            statkey_check = True
+        else:
+            print('Mismatch of status keys. Please compare lists.')
+            print()
+            for key in key_list:
+                if key not in status_keys_from_acu:
+                    print('ACU does not have key "%s"' % key)
+                    extra_keys.append(key)
+            print()
+            for acukey in status_keys_from_acu:
+                if acukey not in key_list:
+                    print('soaculib.status_keys does not have key "%s"' %acukey)
+                    missing_keys.append(acukey)
+            print()
+            statkey_check = False
+
+    print('CPU time - ACU time = %+.6f seconds' % time_diff)
     if abs(time_diff) > 0.1:
         print('Timing difference > 0.1 seconds!')
-        print(time_diff)
         timecheck = False
     else:
         print('Timing difference ok.')
-        print(time_diff)
         timecheck = True
     return statkey_check, timecheck, missing_keys, extra_keys
 

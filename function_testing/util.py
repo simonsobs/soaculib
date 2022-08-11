@@ -9,7 +9,6 @@ def get_parser():
     return parser
 
 def get_acu():
-    import util
-    parser = util.get_parser()
+    parser = get_parser()
     args = parser.parse_args()
     return soaculib.AcuControl(args.config)
