@@ -147,6 +147,10 @@ class Mode(enum.Enum):
     #: communication with OCS.
     SurvivalMode = 'SurvivalMode'
 
+    #: The ElSync mode applies only to 3rd axis on the LAT, and causes
+    #: the co-rotator to closesly track the telescope elevation.
+    ElSync = 'ElSync'
+
 
 class AcuControl:
     """High level interface to ACU platform control.
@@ -166,7 +170,8 @@ class AcuControl:
             self._config, backend=backend)
 
         # Decorate all methods for the chosen backend.
-        for public_name in ['mode', 'azmode', 'go_to', 'go_3rd_axis', 'stop',
+        for public_name in ['mode', 'azmode', 'set_elsync',
+                            'go_to', 'go_3rd_axis', 'stop',
                             'Values', 'Command', 'Write', 'UploadPtStack']:
             func = getattr(self, '_' + public_name)
             setattr(self, '_' + public_name, backend.decorator(func))
@@ -240,6 +245,11 @@ class AcuControl:
         result = yield self.http.Command(
             'DataSets.CmdAzElPositionTransfer',
             'Set ' + ' '.join(cmd), par)
+        self._return(result)
+
+    def _set_elsync(self):
+        result = yield self.http.Command(
+            'DataSets.CmdModeTransfer', 'Set3rdAxisMode', 'ElSync')
         self._return(result)
 
     def _go_3rd_axis(self, val):
