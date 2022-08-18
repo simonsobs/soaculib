@@ -25,6 +25,7 @@ devices:
         'status':
 #            'status_name': 'Datasets.StatusSATPDetailed8100'
             'status_name': 'Datasets.StatusCCATDetailed8100'
+            '3rdaxis_name': 'Datasets.Status3rdAxis'
 
         # For dataset description (see _platforms).
 #        'platform': 'satp'
@@ -71,6 +72,7 @@ devices:
         'status':
 #            'status_name': 'Datasets.StatusSATPDetailed8100'
             'status_name': 'Datasets.StatusCCATDetailed8100'
+            '3rdaxis_name': 'Datasets.Status3rdAxis'
 
         # For dataset description (see _platforms).
 #        'platform': 'satp'
