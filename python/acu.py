@@ -172,6 +172,7 @@ class AcuControl:
         # Decorate all methods for the chosen backend.
         for public_name in ['mode', 'azmode', 'set_elsync',
                             'go_to', 'go_3rd_axis', 'stop',
+                            'clear_faults',
                             'Values', 'Command', 'Write', 'UploadPtStack']:
             func = getattr(self, '_' + public_name)
             setattr(self, '_' + public_name, backend.decorator(func))
@@ -275,6 +276,12 @@ class AcuControl:
         """
         result = yield self.http.Command(
             'DataSets.CmdModeTransfer', 'Stop')
+        self._return(result)
+
+    def _clear_faults(self):
+        """Clear any axis faults (Failure Reset)."""
+        result = yield self.http.Command('DataSets.CmdGeneralTransfer',
+                                         'Failure Reset')
         self._return(result)
 
     # Pass-throughs for plugin primitives
