@@ -164,15 +164,16 @@ if __name__ == '__main__':
 
     acu = soaculib.AcuControl(args.config, persistent=True, readonly=True)
 
-    if not args.dataset.startswith('DataSets.'):
+    if not args.dataset.lower().startswith('datasets.'):
         # Look it up ...
         platform = acu._config.get('platform')
         if platform is None:
             parser.error('ACU configuration does not specify a "platform".')
         if not isinstance(platform, dict):
-            cfg = soaculib.configs.CONFIGS['_platforms'].get(platform)
+            cfg = soaculib.configs.get_datasets(platform)
         if cfg is None:
-            parser.error(f'aculib CONFIGS does not describe platform "{platform}".')
+            parser.error(f'aculib config does not describe datasets for '
+                         f'platform "{platform}".')
 
         dataset_opts = {short: full_name for short, full_name in cfg['datasets']}
         if args.dataset == 'list':
