@@ -20,6 +20,9 @@ class DocumentationType(enum.Enum):
     target = 'target'
     parameter = 'parameter'
     commands = 'commands'
+
+class AculibError(Exception):
+    pass
     
 class AcuHttpInterface:
     """This class constructs HTTP requests of the kind described in the
@@ -151,6 +154,9 @@ class Mode(enum.Enum):
     #: the co-rotator to closesly track the telescope elevation.
     ElSync = 'ElSync'
 
+    #: Rate mode sets an axis to move steadily at a certain velocity.
+    Rate = 'Rate'
+
 
 class AcuControl:
     """High level interface to ACU platform control.
@@ -183,30 +189,65 @@ class AcuControl:
     def _return(self, value):
         self._return_val_func(value)
 
-    def _mode(self, mode=None):
+    def _mode(self, mode=None, size=0):
         """Query or set the Antenna.SkyAxes modes.
 
-        To query the mode, pass mode=None (the default).  Then this
-        function returns a single string describing the mode, unless
-        the two axes have different modes in which case a tuple of
-        strings is returned.
+        To query the modes, pass mode=None (the default).  The modes
+        are returned as one or more strings, depending on the value of
+        "size".
 
-        To set the mode, pass a mode string or Mode object.  Returns a
+        If size == 2, then a tuple of values giving the mode of each
+        axis is returned.  If size == 1, then a single string is
+        returned if the modes are the same, but if they differ then an
+        error is raised.  If size == 0 or None, then a tuple or single
+        string is returned depending on whether the values differ or
+        not.
+
+        To set the mode, pass a mode string or Mode object; or a tuple
+        of the same to set the axes to different modes.  Returns a
         success string.
 
+        This function can also access the 3rd axis mode.  It will
+        attempt to do in the following cases:
+
+        - mode == None and size == 3: queries all three axis modes and
+          returns them as a tuple.
+        - mode is a tuple of length 3: all 3 axis modes will be commanded.
+
         """
+        if size is None:
+            size = 0
+        if isinstance(size, str):
+            raise ValueError('The "size" argument should be an int (pass Modes as a tuple?)')
+
         if mode is None:
             # Query.
-            mode0 = (yield self.http.Values('Antenna.SkyAxes.Azimuth'))['Mode']
-            mode1 = (yield self.http.Values('Antenna.SkyAxes.Elevation'))['Mode']
-            # Return:
-            if mode0 != mode1:
-                self._return((mode0, mode1))
+            modes = [(yield self.http.Values('Antenna.SkyAxes.Azimuth'))['Mode'],
+                     (yield self.http.Values('Antenna.SkyAxes.Elevation'))['Mode']]
+            if size == 3:
+                # SkyAxes.3rdAxis is renamed to Polarisation in latest SAT and LAT XMLs
+                modes.append(
+                    (yield self.http.Values('Antenna.SkyAxes.Polarisation'))['Mode'])
+
+            # Package for return.
+            return_all = (modes[0] != modes[1]) or size >= 2
+            if return_all and size == 1:
+                raise AculibError(f'Modes differ!: {modes[0]}, {modes[1]}')
+            if return_all:
+                result = tuple(modes)
             else:
-                self._return(mode0)
-        mode = Mode(mode)
-        result = yield self.http.Command(
-            'DataSets.CmdModeTransfer', 'SetAzElMode', mode.value)
+                result = modes[0]
+        elif isinstance(mode, (Mode, str)):
+            print('A')
+            mode = Mode(mode)
+            result = yield self.http.Command(
+                'DataSets.CmdModeTransfer', 'SetAzElMode', mode.value)
+        else:
+            print('B')
+            assert(len(mode) in [2, 3])
+            modes = [Mode(m).value for m in mode]
+            result = yield self.http.Command(
+                'DataSets.CmdModeTransfer', 'SetModes', modes)
         self._return(result)
 
     def _azmode(self, mode=None):
