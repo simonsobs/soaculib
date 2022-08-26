@@ -176,7 +176,7 @@ class AcuControl:
             self._config, backend=backend)
 
         # Decorate all methods for the chosen backend.
-        for public_name in ['mode', 'azmode', 'set_elsync',
+        for public_name in ['mode', 'azmode', 'set_elsync', 'set_rate',
                             'go_to', 'go_3rd_axis', 'stop',
                             'clear_faults',
                             'Values', 'Command', 'Write', 'UploadPtStack']:
@@ -238,12 +238,10 @@ class AcuControl:
             else:
                 result = modes[0]
         elif isinstance(mode, (Mode, str)):
-            print('A')
             mode = Mode(mode)
             result = yield self.http.Command(
                 'DataSets.CmdModeTransfer', 'SetAzElMode', mode.value)
         else:
-            print('B')
             assert(len(mode) in [2, 3])
             modes = [Mode(m).value for m in mode]
             result = yield self.http.Command(
@@ -293,6 +291,45 @@ class AcuControl:
         result = yield self.http.Command(
             'DataSets.CmdModeTransfer', 'Set3rdAxisMode', 'ElSync')
         self._return(result)
+
+    def _set_rate(self, az=None, el=None, third=None,
+                  set_mode=True):
+        """
+        Put one or more axes into "Rate" mode, and set the rates.
+
+
+        """
+        vel_sets = {
+            'az': ('DataSets.CmdAzElVelocityTransfer8100', 'Set Azimuth'),
+            'el': ('DataSets.CmdAzElVelocityTransfer8100', 'Set Elevation'),
+            'th': ('DataSets.Cmd3rdAxisVelocityTransfer', 'Set Polarization'),
+        }
+        modes = {
+            'az': None,
+            'el': None,
+            'th': None,
+        }
+
+        for axis, val in [('az', az), ('el', el), ('th', third)]:
+            if val is None or val is False:
+                continue
+            if isinstance(val, (float, int)):
+                ds, name = vel_sets[axis]
+                result = yield self.http.Command(ds, name, '%f' % val)
+                print(result)
+            if val is True or set_mode:
+                modes[axis] = 'Rate'
+        # If third mode is None, drop it ...
+        if modes['th'] is None:
+            del modes['th']
+        # If either of the other two are None, backfill them.
+        if modes['az'] is None or modes['el'] is None:
+            cur_modes = yield self._mode(None, size=2)
+            if modes['az'] is None:
+                modes['az'] = cur_modes[0]
+            if modes['el'] is None:
+                modes['el'] = cur_modes[1]
+        yield self._mode([v for v in modes.values()])
 
     def _go_3rd_axis(self, val):
         """Change 3rd axis to Preset mode and move to specified position.
