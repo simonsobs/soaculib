@@ -77,6 +77,8 @@ def guess_config(hostname):
 
     devices = cache.get('devices', {})
 
+    if os.getenv('ACU_CONFIG_BLOCK') is not None:
+        hostname = os.getenv('ACU_CONFIG_BLOCK')
     if isinstance(hostname, dict):
         return hostname
     if hostname == 'guess':
