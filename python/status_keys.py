@@ -358,7 +358,7 @@ status_fields = {
                 'Safe': 'Safe',
                 'Lightning protection surge arresters': 'Lightning_protection_surge_arresters',
                 'Crane on': 'Crane_on',
-                'ACU in remote mode': 'ACU_remote_mode',
+                'ACU in remote mode': 'Remote_mode',
                 },
             'ACU_emergency' : {
                 'E-Stop servo drive cabinet': 'EStop_servo_drive_cabinet',
@@ -375,7 +375,7 @@ status_fields = {
             'third_axis': {
                 '3rd axis Mode': 'Axis3_Mode',
                 #'3rd axis commanded position': 'Axis3_commanded_position',
-                '3rd axis current position': 'Axis3_current_positon',
+                '3rd axis current position': 'Axis3_current_position',
                 '3rd axis computer disabled': 'Axis3_computer_disabled',
                 '3rd axis axis in stop': 'Axis3_stop',
                 '3rd axis axis disabled': 'Axis3_disabled',
