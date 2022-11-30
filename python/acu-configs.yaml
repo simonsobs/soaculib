@@ -1,7 +1,7 @@
 devices:
 
-    # Emulator on physical ACU at UCologne.
-    'nanten-db':
+    # Emulator on physical ACU at UCologne, with LAT software.
+    'nanten-db-lat':
         # Address of the "remote" interface.
         'base_url': 'http://172.16.5.95:8100'
         # Address of the read-only "remote" interface.
@@ -17,14 +17,59 @@ devices:
             'main':
                 'acu_name': 'PositionBroadcast'
                 'port': 10000
-                'schema': 'v2'
+                'schema': 'v3'
+            'ext':
+                'acu_name': 'PositionBroadcastExt'
+                'port': 10001
+                'active': False
+        'status':
+            'status_name': 'Datasets.StatusCCATDetailed8100'
+            '3rdaxis_name': 'Datasets.Status3rdAxis'
+
+        # For dataset description (see _platforms).
+        'platform': 'ccat'
+        'motion_limits':
+            'azimuth':
+                'lower': -90.0
+                'upper': 480.0
+            'elevation':
+                'lower': 20.0
+                'upper': 90.0
+            'boresight':
+                'lower': 0.0
+                'upper': 360.
+            'acc': 4.25   # = 8./1.88
+
+        # Deprecated stream configs...
+        'broadcaster_url': 'http://172.16.5.95:8080'
+        'PositionBroadcast_target': '172.16.5.10:10000'
+        'PositionBroadcastExt_target': '172.16.5.10:10001'
+
+    # Emulator on physical ACU at UCologne, with SATp software.
+    'nanten-db-satp':
+        # Address of the "remote" interface.
+        'base_url': 'http://172.16.5.95:8100'
+        # Address of the read-only "remote" interface.
+        'readonly_url': 'http://172.16.5.95:8110'
+        # Address of the "developer" interface.
+        'dev_url': 'http://172.16.5.95:8080'
+        # Local interface IP.
+        'interface_ip': '172.16.5.10'
+        # Sleep time to wait for motion to end.
+        'motion_waittime': 1.0
+        # List of streams to configure.
+        'streams':
+            'main':
+                'acu_name': 'PositionBroadcast'
+                'port': 10000
+                'schema': 'v3'
             'ext':
                 'acu_name': 'PositionBroadcastExt'
                 'port': 10001
                 'active': False
         'status':
             'status_name': 'Datasets.StatusSATPDetailed8100'
-#            'status_name': 'Datasets.StatusCCATDetailed8100'
+            '3rdaxis_name': 'Datasets.Status3rdAxis'
 
         # For dataset description (see _platforms).
         'platform': 'satp'
@@ -44,6 +89,49 @@ devices:
         'broadcaster_url': 'http://172.16.5.95:8080'
         'PositionBroadcast_target': '172.16.5.10:10000'
         'PositionBroadcastExt_target': '172.16.5.10:10001'
+
+    # ACU at Wessel with connection to the LAT
+    'ocs-acu-1':
+        # Address of the "remote" interface.
+        'base_url': 'http://192.168.1.113:8100'
+        # Address of the read-only "remote" interface.
+        'readonly_url': 'http://192.168.1.113:8110'
+        # Address of the "developer" interface.
+        'dev_url': 'http://192.168.1.113:8080'
+        # Local interface IP.
+        'interface_ip': '192.168.1.110' #'172.16.5.10'
+        # Sleep time to wait for motion to end.
+        'motion_waittime': 1.0
+        # List of streams to configure.
+        'streams':
+            'main':
+                'acu_name': 'PositionBroadcast'
+                'port': 10001
+                'schema': 'v3'
+            'ext':
+                'acu_name': 'PositionBroadcastExt'
+                'port': 10002
+                'active': False
+        'status':
+#            'status_name': 'Datasets.StatusSATPDetailed8100'
+            'status_name': 'Datasets.StatusCCATDetailed8100'
+            '3rdaxis_name': 'Datasets.Status3rdAxis'
+
+        # For dataset description (see _platforms).
+#        'platform': 'satp'
+        'platform': 'ccat'
+        'motion_limits':
+            'azimuth':
+                'lower': -170.0
+                'upper':  350.0
+            'elevation':
+                'lower': 20.0
+                'upper': 90.0
+            'boresight':
+                'lower': 0.0
+                'upper': 360.
+            'acc': 4.25   # = 8./1.88
+
 
     # Software simulator ACU at UCologne.
     'emulator':
@@ -184,8 +272,24 @@ stream_schemas:
   v2:
     format: '<idddddddddddd'
     fields: ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Corrected_Boresight', 'Raw_Azimuth', 'Raw_Elevation', 'Raw_Boresight', 'Azimuth_Current_1', 'Azimuth_Current_2', 'Elevation_Current_1', 'Boresight_Current_1', 'Boresight_Current_2']
+  v3:
+    format: '<iddddddddddd'
+    fields: ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Raw_Azimuth', 'Raw_Elevation', 'Azimuth_Current_1', 'Azimuth_Current_2', 'Azimuth_Current_3', 'Azimuth_Current_4', 'Elevation_Current_1', 'Elevation_Current_2']
 
 datasets:
+  ccat:
+    'default_dataset': 'ccat'
+    'datasets':
+      - ['ccat',       'DataSets.StatusCCatDetailed8100']
+      - ['general',    'DataSets.StatusGeneral8100']
+      - ['extra',      'DataSets.StatusExtra8100']
+      - ['third',      'DataSets.Status3rdAxis']
+      - ['faults',     'DataSets.StatusDetailedFaults']
+      - ['pointing',   'DataSets.CmdPointingCorrection']
+      - ['spem',       'DataSets.CmdSPEMParameter']
+      - ['weather',    'DataSets.CmdWeatherStation']
+      - ['azimuth',    'Antenna.SkyAxes.Azimuth']
+      - ['elevation',  'Antenna.SkyAxes.Elevation']
   satp:
     'default_dataset': 'satp'
     'datasets':
