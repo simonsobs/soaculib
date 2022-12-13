@@ -52,6 +52,11 @@ def load(config_file=None, update_cache=True):
     else:
         raise RuntimeError("Could not find an ACU config file.  See docs "
                            "or try putting one in ~/.acu.yaml or /etc/acu.yaml.")
+    # Annotate
+    for k, v in config.get('devices', {}).items():
+        v['_name'] = k
+        v['_filename'] = filename
+
     # Process config...
     if update_cache:
         cache = config
