@@ -179,7 +179,7 @@ devices:
         'PositionBroadcastExt_target': '172.16.5.10:10003'
 
     # SATP1 ACU at Vertex.
-    'satp1':
+    'satp1-vertex':
         # Address of the "remote" interface.
         'base_url': 'http://192.168.1.111:8100'
         # Address of the read-only "remote" interface.
@@ -221,7 +221,7 @@ devices:
         'PositionBroadcastExt_target': '192.168.1.111:10002'
 
     # SATP2 ACU at Vertex.
-    'satp2':
+    'satp2-vertex':
         # Address of the "remote" interface.
         'base_url': 'http://192.168.1.109:8100'
         # Address of the read-only "remote" interface.
