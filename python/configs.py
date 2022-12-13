@@ -77,12 +77,13 @@ def guess_config(hostname):
 
     devices = cache.get('devices', {})
 
-    if os.getenv('ACU_CONFIG_BLOCK') is not None:
-        hostname = os.getenv('ACU_CONFIG_BLOCK')
     if isinstance(hostname, dict):
         return hostname
     if hostname == 'guess':
-        hostname = socket.gethostname()
+        if os.getenv('ACU_CONFIG_BLOCK') is not None:
+            hostname = os.getenv('ACU_CONFIG_BLOCK')
+        else:
+            hostname = socket.gethostname()
     if not hostname in devices:
         if '_default' in devices:
             hostname = default
