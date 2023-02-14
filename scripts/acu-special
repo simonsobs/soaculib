@@ -18,6 +18,8 @@ import urllib
 import yaml
 
 import soaculib as aculib
+from soaculib.status_keys import status_fields
+
 
 parser = argparse.ArgumentParser(usage=USAGE)
 # Add global options here...
@@ -77,6 +79,9 @@ p.add_argument('--list', action='store_true',
                help="Show list of known datasets.")
 p.add_argument('--check', action='store_true',
                help="Check each listed item.")
+p.add_argument('--reconcile', action='store_true',
+               help="Verify the mapping between fields found in dataset "
+               "and fields enumerated internally for reporting.")
 
 p = subparsers.add_parser('stop', help="Stop all axes.")
 
@@ -311,10 +316,25 @@ elif args.command == 'dataset':
             except aculib.http.HttpError as e:
                 print('#  error requesting dataset "%s"!' % n)
                 continue
-            print(f'# Using "{n}"')
-            for k,v in t.items():
-                print('%-30s : %s' % (k,repr(v)))
-            print()
+            if args.reconcile:
+                internal_map = {}
+                for group, items in status_fields[platform]['status_fields'].items():
+                    for field, alias in items.items():
+                        internal_map[field] = f'{group}.{alias}'
+                print('Items not found in internal map:')
+                for k, v in t.items():
+                    if internal_map.pop(k, None) is None:
+                        print(f'  "{k}" (current value: {v})')
+                print()
+                print('Items in internal map not found in dataset:')
+                for k, v in internal_map.items():
+                    print(f'  "{k}"')
+                print()
+            else:
+                print(f'# Using "{n}"')
+                for k, v in t.items():
+                    print('%-30s : %s' % (k,repr(v)))
+                print()
 
 elif args.command == 'stop':
     print('Requesting stop...')
