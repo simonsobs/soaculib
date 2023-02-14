@@ -260,31 +260,30 @@ class AcuControl:
             'DataSets.CmdModeTransfer', 'SetModes', [mode.value, 'Stop'])
         self._return(result)
 
-    def _go_to(self, az=None, el=None, wait=None):
-        """Change to Preset mode and move to the specified position.  If a
-        coordinate is omitted, no motion will be initiated on that
-        axis. If wait is passed, the code will wait that number of seconds
-        between setting Preset mode and writing the target position.
+    def _go_to(self, az=None, el=None, set_mode=True):
+        """Optionally update the Preset position target (az, el, neither, or
+        both) and then change to Preset mode (unless set_mode=False).
 
-        Returns when the motion commands have been issued, which is
-        probably well before when the motion itself has completed.
+        Returns after the last command, which is probably well before
+        the motion itself has completed.
 
         """
-        yield self._mode('Preset')
-        if wait is not None and wait > 0:
-            yield self.http.backend.sleep(wait)
-        if az is None and el is None:
-            return
-        cmd, par = [], []
-        if az is not None:
-            cmd.append('Azimuth')
-            par.append('%.4f' % az)
-        if el is not None:
-            cmd.append('Elevation')
-            par.append('%.4f' % el)
-        result = yield self.http.Command(
-            'DataSets.CmdAzElPositionTransfer',
-            'Set ' + ' '.join(cmd), par)
+        # Set the position first, then the mode.  Otherwise you might
+        # rush to some random position (e.g. if ACU just rebooted).
+        result = None
+        if az is not None or el is not None:
+            cmd, par = [], []
+            if az is not None:
+                cmd.append('Azimuth')
+                par.append('%.4f' % az)
+            if el is not None:
+                cmd.append('Elevation')
+                par.append('%.4f' % el)
+            result = yield self.http.Command(
+                'DataSets.CmdAzElPositionTransfer',
+                'Set ' + ' '.join(cmd), par)
+        if set_mode:
+            result = yield self._mode('Preset')
         self._return(result)
 
     def _set_elsync(self):
