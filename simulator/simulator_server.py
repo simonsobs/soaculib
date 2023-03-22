@@ -52,6 +52,12 @@ def command():
             az = float(azel[0])
             el = float(azel[1])
             satp.preset_azel_motion(az, el)
+        elif cmd =='Set Azimuth':
+            az = float(param)
+            satp.preset_azel_motion(new_az=az)
+        elif cmd =='Set Elevation':
+            el = float(param)
+            satp.preset_azel_motion(new_el=el)
         else:
             return 'command not found'
     elif identifier == "DataSets.CmdTimePositionTransfer":
@@ -79,7 +85,7 @@ def command():
     else:
         return 'identifier not found'
     satp.values()
-    return 'ok, command executed'
+    return 'OK, Command executed.'
 
 
 @app.route("/UploadPtStack", methods=["POST"])
