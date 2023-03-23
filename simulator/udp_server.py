@@ -33,6 +33,7 @@ class AcuUdpServer:
         self.write_port = write_port
         self.data_object = data_object
         self.data = data_object.data
+        self.next_sample_time = None
 
     def _build_udp_data(self):
         """Retreive (and update) the values from the DataMaster.
@@ -52,10 +53,15 @@ class AcuUdpServer:
         # Fetch values from DataMaster object
         pkt_values = {k: [] for k in UDP_KEYS}
         for i in range(self.pkt_size):
+            # Wait until the next sample time.
+            now = time.time()
+            dt = self.next_sample_time - now
+            if dt > 0:
+                time.sleep(dt)
+            self.next_sample_time += 0.005
             self.data = self._build_udp_data()
-            for key in self.data.keys():
-                pkt_values[key].append(self.data[key])
-            time.sleep(0.005)
+            for k, v in self.data.items():
+                pkt_values[k].append(v)
 
         # Build list for struct
         _values = []
@@ -75,7 +81,8 @@ class AcuUdpServer:
         host = "localhost"
         port = self.write_port
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.next_sample_time = int(time.time() + 1)
+
         while True:
             pkt = self.set_values()
             sock.sendto(pkt, (host, port))
-            time.sleep(0.05)
