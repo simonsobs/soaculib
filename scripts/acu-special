@@ -27,7 +27,6 @@ parser.add_argument('--readonly', default=False, action='store_true', help=
                     "read/write interface.")
 parser.add_argument('-c', '--config', default='guess', help=
                     "Config block name to use.")
-
 subparsers = parser.add_subparsers(dest='command')
 
 # The bcast-* commands have a common set of options.
@@ -123,8 +122,11 @@ def stream_safe_enable(stream, print_func=print):
 
 
 if args.command == 'ping':
-    acu_config = aculib.guess_config('guess')
+    acu_config = aculib.guess_config(args.config)
+    print('Using config block "{}" from {}\n'.format(
+        acu_config['_name'], acu_config['_filename']))
     url = acu_config['base_url'] # e.g. 'http://172.16.5.95:8100']
+
     host = urllib.parse.urlparse(url).hostname
     print(f'Pinging host at {host}')
     p = subprocess.Popen(["/bin/ping", "-c1", "-w2", host],

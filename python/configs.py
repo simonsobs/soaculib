@@ -52,6 +52,11 @@ def load(config_file=None, update_cache=True):
     else:
         raise RuntimeError("Could not find an ACU config file.  See docs "
                            "or try putting one in ~/.acu.yaml or /etc/acu.yaml.")
+    # Annotate
+    for k, v in config.get('devices', {}).items():
+        v['_name'] = k
+        v['_filename'] = filename
+
     # Process config...
     if update_cache:
         cache = config
@@ -80,7 +85,10 @@ def guess_config(hostname):
     if isinstance(hostname, dict):
         return hostname
     if hostname == 'guess':
-        hostname = socket.gethostname()
+        if os.getenv('ACU_CONFIG_BLOCK') is not None:
+            hostname = os.getenv('ACU_CONFIG_BLOCK')
+        else:
+            hostname = socket.gethostname()
     if not hostname in devices:
         if '_default' in devices:
             hostname = default
