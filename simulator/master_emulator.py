@@ -9,28 +9,22 @@ TZ = dt.timezone.utc
 
 
 def find_day_of_year(now):
-    """
-    Function to find the current day of the year.
+    """Compute an ACU "Day" value, which is a timestamp computed as
+    (fractional) days since the start of the current year, starting
+    from 1.
 
     Input: now (datetime object, datetime.datetime.now())
 
-    Returns: current time as a portion of a day of the year
-    """
-    months = {1: 31, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
-    year = now.year
-    if year % 4 == 0:
-        months[2] = 29
-    else:
-        months[2] = 28
-    current_day_of_year = 0
-    for i in range(1, now.month):
-        current_day_of_year += months[i]
-    current_day_of_year += now.day
-    current_hms = ((now.hour) * 60 * 60 + now.minute * 60 + now.second + now.microsecond * 1e-6)
-    current_day_part = current_hms / (24 * 60 * 60)
-    current_time = current_day_of_year + current_day_part
-    return current_time, current_day_of_year, current_hms
+    Returns: tuple (Day, Integer, Fraction) where Integer is the
+      integer day number, Fraction is the fractional part (0 <=
+      Fraction < 1) and Time is the sum of the two.
 
+    """
+    day_of_year = now.timetuple().tm_yday
+    seconds = ((now.hour) * 60 * 60 + now.minute * 60 + now.second + now.microsecond * 1e-6)
+    day_part = seconds / (24 * 60 * 60)
+    acu_day = day_of_year + day_part
+    return acu_day, day_of_year, seconds
 
 def _initialize_data_dict(dataset):
     """Load server keys from module and populate with sensible starting values.
