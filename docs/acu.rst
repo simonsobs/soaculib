@@ -87,10 +87,13 @@ Returns:
   Command executed.``
 - In some error cases returns HTTP code 200 (OK) and error text:
   ``Failed: Invalid/Unknown value!``
+
   - This has been seen to occur in cases where the Identifier or
     Parameter are invalid.
+
 - In some error cases returns HTTP code 200 (OK) and error text:
   ``Failed: Unknown command!``
+
   - This has been seen to occur in cases where the Command is invalid.
 
 
