@@ -7,5 +7,10 @@ requests
 # twisted backend
 twisted
 
+# simulator
+numpy
+scipy
+flask
+
 # docs
 # see docs/requirements.txt
