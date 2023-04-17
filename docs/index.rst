@@ -11,6 +11,7 @@ User Guide
    acu
    frameworks
    acu-ftp
+   simulator
 
 
 Indices and tables
