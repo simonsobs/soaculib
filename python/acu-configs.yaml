@@ -62,7 +62,7 @@ devices:
             'main':
                 'acu_name': 'PositionBroadcast'
                 'port': 10000
-                'schema': 'v3'
+                'schema': 'v2'
             'ext':
                 'acu_name': 'PositionBroadcastExt'
                 'port': 10001

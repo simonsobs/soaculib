@@ -14,7 +14,7 @@ class BroadcastStreamControl:
     Measurement Dataset (PositionBroadcast).
 
     """
-    INTERFACE = ['enable', 'get_status',
+    INTERFACE = ['safe_enable', 'enable', 'get_status',
                  'set_destination', 'set_port', 'set_config']
 
     @classmethod
@@ -78,7 +78,36 @@ class BroadcastStreamControl:
     def _return(self, value):
         self._return_val_func(value)
 
+    def _safe_enable(self, force_reconfig=False):
+        """Enable the stream, after checking the destination IP and port and
+        updating them if need be.
+
+        If reconfiguration is necessary (or if force_reconfig), then
+        the stream will be disabled before being re-enabled.
+
+        Returns the get_status() output, after enabling the stream.
+
+        """
+        if not force_reconfig:
+            # Check the active settings and maybe force a reconfig.
+            _, current_cfg = yield self.get_status()
+            force_reconfig = (self.p['Port'] != int(current_cfg['Port'])) \
+                or (self.p['Destination'] != current_cfg['Destination'])
+        if force_reconfig:
+            yield self.disable()
+            yield self.set_config()
+        yield self.enable()
+        status, cfg = yield self.get_status()
+        self._return((status, cfg))
+
     def _enable(self, enable=True):
+        """Enable (or disable) the stream UDP output using the developer
+        interface.
+
+        Note this does not check or update the port and IP settings
+        before enabling the stream; see safe_enable().
+
+        """
         data = {'Command': {True: 'Enable', False: 'Disable'}[enable]}
         # At the present time, this system returns a huge web page
         # dump in response to Post, for which we have no reasonable

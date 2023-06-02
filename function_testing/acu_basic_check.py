@@ -74,7 +74,7 @@ def check_status_keys(acu, fallback_dataset='DataSets.StatusGeneral8100'):
             print()
             statkey_check = False
 
-    print('CPU time - ACU time = %+.6f seconds' % time_diff)
+    print('ACU time - CPU time = %+.6f seconds' % time_diff)
     if abs(time_diff) > 0.1:
         print('Timing difference > 0.1 seconds!')
         timecheck = False
