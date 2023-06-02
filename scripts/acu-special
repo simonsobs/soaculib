@@ -103,29 +103,6 @@ def get_target_streams():
     return True, {args.stream: acu.streams[args.stream]}
 
 
-def stream_safe_enable(stream, print_func=print):
-    for tries in range(6):
-        cfg, raw = stream.get_status()
-        print(tries, cfg, raw)
-        if not cfg['target_ok']:
-            if cfg['enabled']:
-                print_func("disabling...")
-                stream.disable()
-            else:
-                print_func("configuring...")
-                stream.set_config()
-        else:
-             if cfg['enabled']:
-                 print_func("stream is enabled.")
-                 break
-             else:
-                print_func("enabling...")
-                stream.enable()
-    else:
-        return False, "Failed to complete enabling of stream."
-    return True, ""
-
-
 if args.command == 'ping':
     acu_config = aculib.guess_config(args.config)
     print('Using config block "{}" from {}\n'.format(
@@ -181,10 +158,10 @@ elif args.command == 'enable-bcast':
     is_all_streams, target_streams = get_target_streams()
     for name, stream in target_streams.items():
         print(f"  stream:        '{name}' @{stream.p['module']}")
-        ok, msg = stream_safe_enable(
-            stream, print_func=lambda x: print('    ' + x))
-        if not ok:
-            parser.error(msg)
+        print(f"    enabling stream")
+        cfg, raw = stream.safe_enable()
+        if not cfg['enabled'] or not cfg['target_ok']:
+            print(f"    -- stream not successfully enabled!")
 
 elif args.command == 'disable-bcast':
     is_all_streams, target_streams = get_target_streams()
@@ -210,12 +187,10 @@ elif args.command == 'listen-bcast':
         print(f"    enabled:     {cfg['enabled']}")
         if not cfg['target_ok'] or not cfg['enabled']:
             if args.enable:
-                ok, msg = stream_safe_enable(
-                    stream, print_func=lambda x: print(' '*8 + x))
-                if not ok:
-                    print('      -- not enabled!')
-                # Refresh the config!
-                cfg, raw = stream.get_status()
+                print('      -- enabling the stream safely')
+                cfg, raw = stream.safe_enable()
+                if not cfg['enabled'] or not cfg['target_ok']:
+                    sprint(f"    -- stream not successfully enabled!")
             else:
                 print("    -- note you can pass --enable to re-configure "
                       "       and enable the stream now.")
