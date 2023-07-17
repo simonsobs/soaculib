@@ -46,7 +46,7 @@ class Renderer:
             },
             {
               "params": [
-                "previous"
+                "none"
               ],
               "type": "fill"
             }
@@ -80,9 +80,10 @@ class Renderer:
           "hide": false
         }
 
-    def full_panel(self, title, fields):
+    def full_panel(self, title, fields, pos=None, _id=None):
         self._step = .6 / (len(fields) - 1)
         self._offset = -.3 - self._step
+
         TARGETS = [self.one_field(*f) for f in fields]
         return {
             "datasource": {
@@ -99,8 +100,8 @@ class Renderer:
                         "fillOpacity": 0,
                         "gradientMode": "none",
                         "spanNulls": false,
-                        "showPoints": "auto",
-                        "pointSize": 5,
+                        "showPoints": "always",
+                        "pointSize": 2,
                         "stacking": {
                             "mode": "none",
                             "group": "A"
@@ -141,13 +142,8 @@ class Renderer:
                 },
                 "overrides": []
             },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 0,
-                "y": 0
-            },
-            "id": 10,
+            "gridPos": pos,
+            "id": _id,
             "options": {
                 "tooltip": {
                     "mode": "single",
@@ -163,6 +159,61 @@ class Renderer:
             "targets": TARGETS,
             "title": f"{title}",
             "type": "timeseries"
+        }
+    def full_dashboard(self, panels):
+        panel_data = []
+        for i, (t, f, (row, col)) in enumerate(panels):
+            pos = {'h': 8, 'w': 12,
+                   'x': 8 * col, 'y': 12 * row}
+            panel_data.append(self.full_panel(t, f, pos=pos, _id=i))
+
+        return {
+            "annotations": {
+                "list": [
+                    {
+                        "builtIn": 1,
+                        "datasource": {
+                            "type": "grafana",
+                            "uid": "-- Grafana --"
+                        },
+                        "enable": true,
+                        "hide": true,
+                        "iconColor": "rgba(0, 211, 255, 1)",
+                        "name": "Annotations & Alerts",
+                        "target": {
+                            "limit": 100,
+                            "matchAny": false,
+                            "tags": [],
+                            "type": "dashboard"
+                        },
+                        "type": "dashboard"
+                    }
+                ]
+            },
+            "editable": true,
+            "fiscalYearStartMonth": 0,
+            "graphTooltip": 0,
+            "id": 1,
+            "links": [],
+            "liveNow": false,
+            "panels": panel_data,
+            "refresh": "5s",
+            "schemaVersion": 38,
+            "style": "dark",
+            "tags": [],
+            "templating": {
+                "list": []
+            },
+            "time": {
+                "from": "now-5m",
+                "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "",
+            "title": "ACU Faults (SATP1)",
+            #"uid": "MiMrVfF4k",
+            #"version": 23,
+            "weekStart": ""
         }
 
 
@@ -223,26 +274,61 @@ def get_panel_fields(verbose=False):
                         continue
                     vprint('    ', k, alias)
                     _fields.append((alias, k + '_influx'))
+    fields['other-limits'] = [
+        ('az', 'Azimuth_current_position_influx'),
+        ('el', 'Elevation_current_position_influx'),
+        ('boresight', 'Boresight_current_position_influx')
+    ]
+        
     return fields
 
 
-for k, fields in get_panel_fields().items():
-    print(k, len(fields))
-    for satp in [1,2,3]:
-        r = Renderer('e25f9c43-ed4d-4306-bdea-59d9a5197a0e',
-                     f'satp{satp}.acu')
+use_plat_var = True
+if use_plat_var:
+    platfmt = "/^$platform$/"
+    satps = ['var']
+else:
+    platfmt = 'satp{satp}.acu'
+    satps = [1, 2, 3]
+
+for satp in satps:
+    r = Renderer('e25f9c43-ed4d-4306-bdea-59d9a5197a0e',
+                 platfmt.format(satp=satp))
+    panels = {}
+    for k, fields in get_panel_fields().items():
+        print(k, len(fields))
         sys, grp = k.split('-')
         if sys == 'bs':
             sys = '3rd'
-        if grp == 'limits':
+        if k == 'other-limits':
+            title = 'Positions'
+        elif grp == 'limits':
             title = sys.capitalize() + ' Limits'
         elif sys == 'other':
             title = 'Global Faults'
         else:
             title = sys.capitalize() + ' Faults'
+        panels[k] = (title, fields)
 
-        data = r.full_panel(title, fields)
+    org = [
+        ('other-other', 0, 0),
+        ('az-other', 1, 0),
+        ('el-other', 2, 0),
+        ('bs-other', 3, 0),
+        ('other-limits', 0, 1),
+        ('az-limits', 1, 1),
+        ('el-limits', 2, 1),
+        ('bs-limits', 3, 1),
+    ]
+
+    for _id, (k, row, col) in enumerate(org):
+        pos = {'h': 8, 'w': 12,
+               'x': 12 * col, 'y': 8 * row}
+        data = r.full_panel(panels[k][0], panels[k][1], pos=pos, _id=_id)
         text = json.dumps(data) + '\n'
         filename = f'panel-satp{satp}-{k}.json'
-        print(f'Writing {filename} ("{title}")')
+        print(f'Writing {filename}')
         open(filename, 'w').write(text)
+
+    
+        
