@@ -214,38 +214,56 @@ elif args.command == 'listen-bcast':
 
     while True:
         for name, s in socks.items():
-            if s['next_read'] > time.time():
+            now = time.time()
+
+            if s['next_read'] > now:
                 continue
+
             try:
                 data, addr = s['sock'].recvfrom(64000)
             except socket.timeout:
-                print(name, ' - timeout')
-                s['next_read'] = time.time() + 1.
+                print(name, '  -- timeout')
+                s['next_read'] = now + 1.
                 s.pop('mark_time', None)
                 continue
 
-            now = time.time()
-            if not 'mark_time' in s:
-                print(name, ' - received %i bytes, starting rate counter.' % len(data))
-                s['mark_time'] = now
-                s['mark_bytes'] = 0
-            else:
-                s['mark_bytes'] += len(data)
-                if now - s['mark_time'] > report_interval:
-                    rate = s['mark_bytes'] / (now - s['mark_time'])
-                    s['mark_time'] = now
-                    s['mark_bytes'] = 0
-                    # Unpack?
-                    if s['schema'] is not None:
-                        fmt = s['schema']['format']
-                        n = struct.calcsize(fmt)
-                        d = struct.unpack(fmt, data[-n:])
-                    else:
-                        d = '(unknown)'
-                    print(name, ' - rate=%.2f bytes/s; data=' % rate, d)
-
             if len(data) and s.get('fout'):
                 s['fout'].write(data)
+
+            if not 'mark_time' in s:
+                s['mark_time'] = now
+                s['mark_bytes'] = 0
+                s['mark_frames'] = 0
+
+            else:
+                s['mark_bytes'] += len(data)
+                s['mark_frames'] += 1
+
+            if now - s['mark_time'] < report_interval:
+                continue
+
+            # Compute rates and reset counter
+            byte_rate = s['mark_bytes'] / (now - s['mark_time'])
+            frame_rate = s['mark_frames'] / (now - s['mark_time'])
+            del s['mark_time']
+
+            frame_size = len(data)
+            bytes_per_sample = frame_size / 10
+
+            print(f'{name}: frame_rate={frame_rate:.3f}, data_rate={byte_rate:.3f}, '
+                  f'frame_size={frame_size} '
+                  f'({bytes_per_sample:.1f} bytes per sample)')
+
+            if s['schema'] is not None:
+                fmt = s['schema']['format']
+                n = struct.calcsize(fmt)
+                if n != bytes_per_sample:
+                    print(f'  -- schema struct size mismatch ({n} vs {bytes_per_sample})!')
+                vals = struct.unpack(fmt, data[-n:])
+                for f, v in zip(s['schema']['fields'], vals):
+                    print(f'  {f:<25}: {v}')
+            print()
+
 
 elif args.command == 'meta':
     output = next(acu.http.Meta())
