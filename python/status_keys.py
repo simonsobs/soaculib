@@ -385,7 +385,7 @@ status_fields = {
                 'E-Stop OCS': 'EStop_OCS',
                 },
             'corotator': {
-                '3rd axis Mode': 'Corotator_Mode',
+                '3rd axis Mode': 'Corotator_mode',
                 #'3rd axis commanded position': 'Corotator_commanded_position',
                 '3rd axis current position': 'Corotator_current_position',
                 '3rd axis computer disabled': 'Corotator_computer_disabled',
