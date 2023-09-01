@@ -367,7 +367,7 @@ status_fields = {
                 'Key Switch Safe Override': 'Key_Switch_Safe_Override',
                 'Key Switch Bypass Emergency Limit': 'Key_Switch_Bypass_Emergency_Limit',
                 'PCU operation': 'PCU_operation',
-                'Safe': 'Safe',
+                'Safe': 'Safe_mode',
                 'Lightning protection surge arresters': 'Lightning_protection_surge_arresters',
                 'Crane on': 'Crane_on',
                 'ACU in remote mode': 'Remote_mode',
