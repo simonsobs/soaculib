@@ -31,7 +31,11 @@ def check_status_keys(acu, fallback_dataset='DataSets.StatusGeneral8100'):
         cfg = aculib.configs.get_datasets(platform)
         dataset_opts = {short: full_name for short, full_name in cfg['datasets']}
         ds = [cfg['default_dataset']]
+        third_ds = acu._config['status'].get('3rdaxis_name')
+        if third_ds is not None:
+            ds.append(third_ds)
 
+    status_keys_from_acu = []
     for n in ds:
         m = dataset_opts.get(n, n)
         try:
@@ -42,10 +46,11 @@ def check_status_keys(acu, fallback_dataset='DataSets.StatusGeneral8100'):
             print('# error requesting dataset "%s"!' % m)
             continue
         print(f'# Using "{m}"')
-        status_keys_from_acu = []
-        for k,v in t.items():
-            status_keys_from_acu.append(k)
-        status_keys_from_acu.sort()
+        for k, v in t.items():
+            if k not in status_keys_from_acu:
+                # if block here because 3rd axis includes Time, Year
+                status_keys_from_acu.append(k)
+    status_keys_from_acu.sort()
 
     if platform is None:
         print('# Cannot compare keys to list because platform not declared.')
