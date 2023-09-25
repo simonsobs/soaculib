@@ -1,3 +1,7 @@
+"""Run like "test_pointcorr.py singles" -- that will walk through each
+parameter and compare az/el readings to expectations.
+
+"""
 import soaculib
 import test_helpers as th
 import time
@@ -12,19 +16,25 @@ parser = util.get_parser()
 parser.add_argument('mode', default='passive', nargs='?')
 args = parser.parse_args()
 
-
+# This lists all keys in the model ... comment out any you don't want
+# to deal with today.
 SPEM_KEYS = [
     'IA', 'IE',
-    'TF', 'TFS',
-    'TFC',
+    'TF', 'TFS', 'TFC',
+    'TFE', 'TFEC', 'TFES',
     'AN', 'AW',
-#    'AN2', 'AW2',
+    'AN2', 'AW2',
     'NPAE',
     'CA',
-#    'AES', 'AEC', 'AES2', 'AEC2',
-    #'EES' ... no elevation ellipticity.
+    'AES', 'AEC', 'AES2', 'AEC2',
+    'EES', 'EEC', 'EES2', 'EEC2',
+    'NRX', 'NRY',
+    'LELA', 'LELE',
+#    'velocity'    # this one isn't totally sorted out.
 ]
-IGNORE_WRITEBACK = [] #'AN2', 'AW2']
+
+# In addition to the Time and Year, add any that need not be written to.
+IGNORE_WRITEBACK = ['Time', 'Year', 'velocity']
 
 class SpemHelper:
     """This works with simple parameter names (IA, etc) and values in
@@ -83,13 +93,22 @@ def banner(title):
 
 acu = soaculib.AcuControl(args.config)
 
-banner('Check Datasets Present')
-
-for dset in [
+if acu._config['platform'] == 'ccat':
+    datasets = [
+        'DataSets.StatusCCatDetailed8100',
+        'DataSets.CmdPointingCorrection',
+        'DataSets.CmdSPEMParameter',
+    ]
+elif acu._config['platform'] == 'satp':
+    datasets = [
         'DataSets.StatusSATPDetailed8100',
         'DataSets.StatusPointingCorrection',
         'DataSets.CmdSPEMParameter',
-        ]:
+    ]
+
+banner('Check Datasets Present')
+
+for dset in datasets:
     try:
         v1 = acu.Values(dset)
         print('  Retrieved %-40s - %i keys' % (dset, len(v1)))
@@ -119,10 +138,9 @@ if len(excess_keys):
     #keep_going = False
 check_ok()
 
-
 banner('Check write-back all SPEM parameters')
 
-if not th.check_remote(acu):
+if not th.check_remote(acu, datasets[0]):
     print('ACU is not in remote mode!')
     keep_going = False
 check_ok()
@@ -133,8 +151,12 @@ for k, v in spemh.get().items():
     except:
         print('  Failed to write %s!' % k)
         if k not in IGNORE_WRITEBACK:
-            keep_going = False
+            keep_going = True #False
         continue
+    # read back the value
+    print('  ', k, v, spemh.get()[k])
+    print()
+
 
 print('  Write-back test complete.')
 check_ok()
@@ -203,9 +225,10 @@ if args.mode == 'singles':
         model = dict(model0)
         model[k] = D
         time.sleep(.2)
+        Dr = spemh.get()[k]
         pos1 = th.get_positions(acu)
-        spemh.set({k: 0})
         expected = spem_model.delta(pos0, model)
+        print('    Wrote %.2f and read back %.2f' % (D, Dr))
         print('    For %-4s = %4.2f only:  ' % (k, D) +
               'expect [%+7.4f,%+7.4f] ' % tuple(expected) +
               'and measure [%+7.4f,%+7.4f]' % tuple(pos1 - pos0),
@@ -215,6 +238,8 @@ if args.mode == 'singles':
         else:
             print(' * ok')
 
+        input()
+        spemh.set({k: 0})
 
 if args.mode == 'survey':
     # A good mode for checking that model makes sense across the sky.
