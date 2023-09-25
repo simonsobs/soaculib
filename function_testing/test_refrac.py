@@ -72,13 +72,22 @@ def banner(title):
 
 acu = soaculib.AcuControl(args.config)
 
-banner('Check Datasets Present')
-
-for dset in [
+if acu._config['platform'] == 'ccat':
+    datasets = [
+        'DataSets.StatusCCatDetailed8100',
+        'DataSets.CmdPointingCorrection',
+        'DataSets.CmdWeatherStation',
+    ]
+elif acu._config['platform'] == 'satp':
+    datasets = [
         'DataSets.StatusSATPDetailed8100',
         'DataSets.StatusPointingCorrection',
         'DataSets.CmdWeatherStation',
-        ]:
+    ]
+
+banner('Check Datasets Present')
+
+for dset in datasets:
     try:
         v1 = acu.Values(dset)
         print('  Retrieved %-40s - %i keys' % (dset, len(v1)))
@@ -111,7 +120,7 @@ check_ok()
 
 banner('Check write-back all Refrac parameters')
 
-if not th.check_remote(acu):
+if not th.check_remote(acu, datasets[0]):
     print('ACU is not in remote mode!')
     keep_going = False
 check_ok()
@@ -147,6 +156,7 @@ dmodel = {'Temperature': 25.0,
           'AirPressure': 600.0}
 
 refh.global_enable(True)
+
 refh.set(model0)
 pos0 = th.get_positions(acu)
 print('Current position:', pos0)

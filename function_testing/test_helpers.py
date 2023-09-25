@@ -17,6 +17,6 @@ def check_3rd(acu, pos, tol=1e-3):
     pos_now = get_3rd(acu)
     return abs(pos_now - pos) < tol
 
-def check_remote(acu):
-    ident, param = 'DataSets.StatusSATPDetailed8100', 'ACU in remote mode'
+def check_remote(acu, dset='DataSets.StatusSATPDetailed8100'):
+    ident, param = dset, 'ACU in remote mode'
     return acu.Values(ident)[param]
