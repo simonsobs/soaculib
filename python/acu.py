@@ -141,6 +141,13 @@ class Mode(enum.Enum):
     #: through a series of positions uploaded continuously to the ACU.
     ProgramTrack = 'ProgramTrack'
 
+    #: Rate mode sets an axis to move steadily at a certain velocity.
+    Rate = 'Rate'
+
+    #: The ElSync mode applies only to 3rd axis on the LAT, and causes
+    #: the co-rotator to closesly track the telescope elevation.
+    ElSync = 'ElSync'
+
     #: The Stow mode causes the axes to travel and park at a
     #: particular reference position.
     Stow = 'Stow'
@@ -150,12 +157,13 @@ class Mode(enum.Enum):
     #: communication with OCS.
     SurvivalMode = 'SurvivalMode'
 
-    #: The ElSync mode applies only to 3rd axis on the LAT, and causes
-    #: the co-rotator to closesly track the telescope elevation.
-    ElSync = 'ElSync'
+    #: MaintenanceStow mode sends the LAT to el=90, and inserts the
+    #: stow pin.
+    MaintenanceStow = 'MaintenanceStow'
 
-    #: Rate mode sets an axis to move steadily at a certain velocity.
-    Rate = 'Rate'
+    #: The UnStow mode is used to request that the stow pins be
+    #: retracted.
+    UnStow = 'UnStow'
 
 
 class AcuControl:
