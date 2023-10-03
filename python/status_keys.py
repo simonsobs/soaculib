@@ -166,6 +166,7 @@ status_fields = {
                 'Cabinet undertemperature': 'Cabinet_undertemp',
                 'Time synchronisation error': 'Time_sync_error',
                 'ACU-PLC communication error': 'PLC_comms_error',
+                'Program Track position failure': 'ProgramTrack_position_failure',
                 'Start of Program Track too early': 'Track_start_too_early',
                 'Turnaround acceleration too high': 'Turnaround_accel_too_high',
                 'Turnaround time too short': 'Turnaround_time_too_short',
