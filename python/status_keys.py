@@ -302,7 +302,7 @@ status_fields = {
             'axis_state' : {
                 'Azimuth computer disabled': 'Azimuth_computer_disabled',
                 'Azimuth axis disabled': 'Azimuth_disabled',
-                'Azimuth axis in stop': 'Azimuth_stop',
+                'Azimuth axis in stop': 'Azimuth_axis_stop',
                 'Azimuth brakes released': 'Azimuth_brakes_released',
                 'Azimuth stop at LCP': 'Azimuth_stop_LCP',
                 'Azimuth power on': 'Azimuth_power_on',
@@ -392,7 +392,7 @@ status_fields = {
                 'Co-Rotator mode': 'Corotator_mode',
                 'Co-Rotator current position': 'Corotator_current_position',
                 'Co-Rotator computer disabled': 'Corotator_computer_disabled',
-                'Co-Rotator axis in stop': 'Corotator_stop',
+                'Co-Rotator axis in stop': 'Corotator_axis_stop',
                 'Co-Rotator axis disabled': 'Corotator_disabled',
                 'Co-Rotator brakes released': 'Corotator_brakes_released',
                 'Co-Rotator stop at LCP': 'Corotator_stop_LCP',
