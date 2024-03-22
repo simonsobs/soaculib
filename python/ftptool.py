@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import ftplib
 import os
@@ -354,7 +352,7 @@ def get_parser():
     return parser
 
 
-if __name__ == '__main__':
+def main():
     parser = get_parser()
     args = parser.parse_args()
 

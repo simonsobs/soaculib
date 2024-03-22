@@ -8,8 +8,12 @@ setup(name='soaculib',
       cmdclass=versioneer.get_cmdclass(),
       package_dir={'soaculib': 'python'},
       packages=['soaculib'],
+      entry_points={
+          'console_scripts': [
+              'acu-ftp=soaculib.ftptool:main',
+          ],
+      },
       scripts=[
-          'scripts/acu-ftp',
           'scripts/acu-headsup',
           'scripts/acu-special',
       ],
