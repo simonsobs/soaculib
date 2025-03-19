@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import ftplib
 import os
@@ -83,7 +81,7 @@ class ftpHelper:
         if dest.endswith('/'):
             dest = dest + f
         dest_dir = os.path.split(dest)[0]
-        if not os.path.exists(dest_dir):
+        if dest_dir != '' and not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
         with open(dest, 'wb') as fout:
             self.F.retrbinary('RETR %s' % src, fout.write)
@@ -342,10 +340,19 @@ def get_parser():
     p.add_argument('--name', help="Choose a specific patch defined "
                    "in the config file (integer index works too).")
 
+    p = s.add_parser('get-file')
+    p.add_argument('path_on_server')
+    p.add_argument('local_dest', default=None)
+
+    p = s.add_parser('put-file')
+    p.add_argument('local_source')
+    p.add_argument('path_on_server')
+    p.add_argument('-f', '--force', action='store_true')
+
     return parser
 
 
-if __name__ == '__main__':
+def main():
     parser = get_parser()
     args = parser.parse_args()
 
@@ -504,6 +511,22 @@ if __name__ == '__main__':
     elif args.action == 'prompt':
         f = ftpHelper(ftp_cfg)
         print('f is your ftpHelper')
+
+    elif args.action == 'get-file':
+        if args.local_dest is None:
+            args.local_dest = './'
+        f = ftpHelper(ftp_cfg)
+        f.pull_file(args.path_on_server, args.local_dest)
+
+    elif args.action == 'put-file':
+        if args.path_on_server[-1] == '/':
+            args.path_on_server = os.path.join(args.path_on_server,
+                                               os.path.split(args.local_source)[1])
+        elif not args.force:
+            raise RuntimeError('Pass --force if you are writing to a '
+                               'different filename on remote.')
+        f = ftpHelper(ftp_cfg)
+        f.put(args.local_source, args.path_on_server)
 
     else:
         parser.print_help()
