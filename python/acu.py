@@ -251,6 +251,11 @@ class AcuControl:
                 'DataSets.CmdModeTransfer', 'SetAzElMode', mode.value)
         else:
             assert(len(mode) in [2, 3])
+            if any([m is None for m in mode]):
+                # Fill in the missing ones.
+                _mode = (yield self.mode(size=len(mode)))
+                mode = [b if a is None else a
+                        for a, b in zip(mode, _mode)]
             modes = [Mode(m).value for m in mode]
             result = yield self.http.Command(
                 'DataSets.CmdModeTransfer', 'SetModes', modes)
@@ -270,28 +275,44 @@ class AcuControl:
 
     def _go_to(self, az=None, el=None, set_mode=True):
         """Optionally update the Preset position target (az, el, neither, or
-        both) and then change to Preset mode (unless set_mode=False).
+        both) and then change some axes to Preset mode (see note below).
 
         Returns after the last command, which is probably well before
         the motion itself has completed.
+
+        Note how this function changes the axis modes:
+        - if set_mode=False, the axis modes are not changed.
+        - if set_mode=True, both axis modes are changed to Preset.
+        - if set_mode='target', *only* the axes for which a new target
+          position was specified will have their mode updated.
 
         """
         # Set the position first, then the mode.  Otherwise you might
         # rush to some random position (e.g. if ACU just rebooted).
         result = None
+        modes = [None, None]
         if az is not None or el is not None:
             cmd, par = [], []
             if az is not None:
                 cmd.append('Azimuth')
                 par.append('%.4f' % az)
+                modes[0] = 'Preset'
             if el is not None:
                 cmd.append('Elevation')
                 par.append('%.4f' % el)
+                modes[1] = 'Preset'
             result = yield self.http.Command(
                 'DataSets.CmdAzElPositionTransfer',
                 'Set ' + ' '.join(cmd), par)
-        if set_mode:
+
+        if set_mode in ['target']:
+            if any([m is not None for m in modes]):
+                result = yield self._mode(modes)
+        elif set_mode:
             result = yield self._mode('Preset')
+        else:
+            pass
+
         self._return(result)
 
     def _set_elsync(self):
