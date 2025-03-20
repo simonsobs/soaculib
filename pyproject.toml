@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools", "versioneer[toml]==0.29"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "soaculib"
+readme = "README.rst"
+description = "ACU Control Library for Simons Observatory"
+license = {file = "LICENSE"}
+requires-python = ">=3.8"
+dependencies = [
+  "requests",
+  "twisted",
+]
+dynamic = ["version"]
+
+[tool.setuptools]
+package-dir = {"soaculib" = "python"}
+
+[project.optional-dependencies]
+simulator = [
+  "flask",
+  "numpy",
+  "scipy",
+]
+
+[project.scripts]
+acu-headsup = "soaculib.cli.headsup:main"
+acu-ftp = "soaculib.ftptool:main"
+acu-special = "soaculib.cli.tool:main"
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "python/_version.py"
+versionfile_build = "soaculib/_version.py"
+tag_prefix = "v"
+parentdir_prefix = "soaculib-"
