@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 USAGE = """acu-headsup
 
 This program queries a dataset from the ACU and renders the
@@ -101,8 +99,8 @@ def enrich(d, rec=None):
         d['recording*'] = 'no (r to start)'
     return d
 
-#def main(stdscr, dataset='DataSets.StatusGeneral8100'):
-def main(stdscr, acu, dataset='DataSets.StatusSATPDetailed8100'):
+
+def headsup(stdscr, acu, dataset='DataSets.StatusSATPDetailed8100'):
     curses.noecho()
     curses.cbreak()
     stdscr.keypad(True)
@@ -153,13 +151,20 @@ def main(stdscr, acu, dataset='DataSets.StatusSATPDetailed8100'):
             if c in [ord('q'), 27]:
                 running = False
 
-if __name__ == '__main__':
+def get_parser():
     from argparse import ArgumentParser
     parser = ArgumentParser(usage=USAGE)
 #    parser.add_argument('-d', '--dataset', default='DataSets.StatusSATPDetailed8100', help='Dataset to monitor')
     parser.add_argument('-d', '--dataset', default='DataSets.StatusGeneral8100', help='Dataset to monitor')
     parser.add_argument('-c', '--config', default='guess', help=
                         "Config block to use.")
+    return parser
+
+
+def main(args=None):
+    if args is None:
+        parser = get_parser()
+        args = parser.parse_args()
     args = parser.parse_args()
 
     acu = soaculib.AcuControl(args.config, persistent=True, readonly=True)
@@ -184,5 +189,4 @@ if __name__ == '__main__':
         else:
             args.dataset = dataset_opts[args.dataset]
 
-
-    curses.wrapper(main, acu, args.dataset)
+    curses.wrapper(headsup, acu, args.dataset)

@@ -7,16 +7,14 @@ setup(name='soaculib',
       version=versioneer.get_version(),
       cmdclass=versioneer.get_cmdclass(),
       package_dir={'soaculib': 'python'},
-      packages=['soaculib'],
+      packages=['soaculib', 'soaculib.cli'],
       entry_points={
           'console_scripts': [
+              'acu-headsup=soaculib.cli.headsup:main',
               'acu-ftp=soaculib.ftptool:main',
+              'acu-special=soaculib.cli.tool:main',
           ],
       },
-      scripts=[
-          'scripts/acu-headsup',
-          'scripts/acu-special',
-      ],
       package_data={
           'soaculib': ['acu-configs.yaml']
       },
