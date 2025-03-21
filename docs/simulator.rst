@@ -24,10 +24,10 @@ To setup, first build the docker image::
     $ docker build -t soaculib .
 
 Then you should be able to launch a simulator using the
-``docker-compose.yaml`` in the simulator directory::
+``compose.yaml`` in the simulator directory::
 
     $ cd simulator/
-    $ docker-compose up
+    $ docker compose up
 
 Alternately, start a simulator container like this::
 
@@ -37,14 +37,14 @@ Alternately, start a simulator container like this::
 Clients
 -------
 
-In the soaculib default configuration blocks, the "emulator" block
+In the soaculib default configuration blocks, the "simulator" block
 matches the default configuration of the docker image, assuming it is
 run on the same host as the soaculib client.
 
-For example, to test the emulator in a Python session::
+For example, to test the simulator in a Python session::
 
     >>> import soaculib
-    >>> c = soaculib.AcuControl('emulator')
+    >>> c = soaculib.AcuControl('simulator')
     >>> c.go_to(180, 60)
     'OK, Command executed.'
 
@@ -52,5 +52,5 @@ Here is a OCS site config file block::
 
     {'agent-class': 'ACUAgent',
      'instance-id': 'acu-emu',
-     'arguments': [['--acu_config', 'emulator']]},
+     'arguments': [['--acu_config', 'simulator']]},
 

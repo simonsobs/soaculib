@@ -156,7 +156,11 @@ class DataMaster:
             'Elevation': {
                 'target': None,
                 'speed': 6.,
-                },
+            },
+            'Boresight': {
+                'target': None,
+                'speed': 1.,
+            },
         }
 
         while True:
@@ -193,7 +197,8 @@ class DataMaster:
             if active:
                 self.update_timestamp()
                 self.update_positions(new_az=all_data['Azimuth'].get('pos'),
-                                      new_el=all_data['Elevation'].get('pos'))
+                                      new_el=all_data['Elevation'].get('pos'),
+                                      new_bs=all_data['Boresight'].get('pos'))
                 v_az = all_data['Azimuth'].get('vel', 0.)
                 v_el = all_data['Elevation'].get('vel', 0.)
                 self.update_data({
@@ -220,40 +225,18 @@ class DataMaster:
             self.data['Elevation commanded position'] = new_el
         return True
 
+    def preset_bs_motion(self, new_bs):
+        self.data['Boresight commanded position'] = new_bs
+
     def change_mode(self, axes=[], modes=[]):
         if len(axes) != len(modes):
             return
         for i in range(len(axes)):
             self.data[axes[i] + " mode"] = modes[i]
-
-    def preset_bs_motion(self, new_bs):
-        current_bs = self.data['Raw Boresight']
-        if current_bs > new_bs:
-            bsvel = -6.0
-        elif current_bs < new_bs:
-            bsvel = 6.0
-        else:
-            bsvel = 0.0
-        current_time = self.data['Time_UDP']
-        if bsvel != 0.0:
-            elapsed_time_bs = abs((new_bs - current_bs) / bsvel)
-        else:
-            elapsed_time_bs = 1.
-        endtime_bs = current_time + elapsed_time_bs
-        bss = np.linspace(current_bs, new_bs, num=50)
-        bstimes = np.linspace(current_time, endtime_bs, num=50)
-        bscurve = CubicSpline(bstimes, bss)
-        nowtimestamp = current_time
-        while nowtimestamp < endtime_bs:
-            self.update_timestamp()
-            self.update_positions(
-                self.data['Raw Azimuth'],
-                self.data['Raw Elevation'],
-                float(
-                    bscurve(nowtimestamp)))
-            nowtimestamp = self.data['Time_UDP']
-        self.update_timestamp()
-        self.update_positions(self.data['Raw Azimuth'], self.data['Raw Elevation'], new_bs)
+            if modes[i] == 'Stop':
+                self.data[axes[i] + " brakes released"] = False
+            elif modes[i] == 'Preset':
+                self.data[axes[i] + " brakes released"] = True
 
     @staticmethod
     def _calculate_udp_time(line):
