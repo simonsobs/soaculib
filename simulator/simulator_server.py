@@ -1,3 +1,6 @@
+import time
+import os
+import logging
 import numpy as np
 from threading import Thread
 from flask import Flask, request, jsonify
@@ -9,18 +12,13 @@ satp = DataMaster('Datasets.StatusSATPDetailed8100')
 udp = AcuUdpServer(10008, satp)
 app = Flask(__name__)
 
-# Useful for turning off Flask logs
-# import logging
-# log = logging.getLogger('werkzeug')
-# log.disabled = True
-
 
 @app.route("/Values", methods=["GET"])
 def get_data():
     data = satp.values()
     identifier = request.args.get('identifier')
     form = request.args.get('format')
-    if identifier == 'DataSets.StatusSATPDetailed8100':
+    if identifier.lower() == 'DataSets.StatusSATPDetailed8100'.lower():
         if form == 'JSON':
             return jsonify(data)
         else:
@@ -28,7 +26,8 @@ def get_data():
     elif identifier.split('.')[1] == 'SkyAxes':
         SkyAxes = {'Azimuth': {'Mode': data['Azimuth mode']},
                    'Elevation': {'Mode': data['Elevation mode']},
-                   'Boresight': {'Mode': data['Boresight mode']}}
+                   'Boresight': {'Mode': data['Boresight mode']},  # deprecated
+                   'Polarisation': {'Mode': data['Boresight mode']}}
         axis = identifier.split('.')[2]
         return jsonify(SkyAxes[axis])
     else:
@@ -67,16 +66,18 @@ def command():
         else:
             return 'command not found'
     elif identifier == "DataSets.CmdModeTransfer":
+        all_axes = ['Azimuth', 'Elevation', 'Boresight']
         if cmd == "Set3rdAxisMode":
             new_mode = param
             satp.change_mode(axes=['Boresight'], modes=[new_mode])
         elif cmd == "SetAzElMode":
             satp.change_mode(axes=['Azimuth', 'Elevation'], modes=[param, param])
         elif cmd == "SetModes":
-            param = param.split('|')
-            new_azmode = param[0]
-            new_elmode = param[1]
-            satp.change_mode(axes=['Azimuth', 'Elevation'], modes=[new_azmode, new_elmode])
+            param = param.split('|')  # Could be 2 or 3 params.
+            axes, modes = zip(*zip(all_axes, param))
+            satp.change_mode(axes=axes, modes=modes)
+        elif cmd == 'Stop':
+            satp.change_mode(axes=all_axes, modes=['Stop'] * len(all_axes))
         else:
             return 'command not found'
     elif identifier == "DataSets.Cmd3rdAxisPositionTransfer":
@@ -102,11 +103,17 @@ def upload():
 
 
 if __name__ == "__main__":
+    flask_logs = os.getenv('ACUSIM_FLASK_LOG') not in [None, '', '0']
+    if not flask_logs:
+        log = logging.getLogger('werkzeug')
+        log.disabled = True
+
+    port = int(os.getenv('ACUSIM_HTTP_PORT', 8102))
+
     # start background thread updating internal ACU data
     satp.run()
 
-    flask_kwargs = {'host': 'localhost', 'port': 8102, 'debug': False}
-    #flask_kwargs = {'host': 'localhost', 'port': 8102, 'debug': False, 'threaded': False, 'processes': 3}
+    flask_kwargs = {'host': 'localhost', 'port': port, 'debug': False}
     t1 = Thread(target=app.run, kwargs=flask_kwargs)
     t2 = Thread(target=udp.run)
 
