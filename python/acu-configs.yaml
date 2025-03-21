@@ -134,7 +134,7 @@ devices:
 
 
     # Software simulator ACU at UCologne.
-    'emulator':
+    'simulator':
         # Address of the "remote" interface.
         'base_url': 'http://localhost:8102'
         # Address of the read-only "remote" interface.
