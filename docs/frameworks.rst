@@ -41,18 +41,27 @@ are layered as follows:
       might inspect the HTTP return code to assess success of the
       operation).
 
-  - The Backend object (StandardBackend or TwistedBackend) is
-    responsible for executing the request stored in the HttpRequest
-    object.  Using appropriate methods for the target framework, it
-    issues the HTTP request and runs the output through the decoder.
+  - The Backend object is responsible for executing the request stored
+    in the HttpRequest object.  Using appropriate methods for the
+    target framework, it issues the HTTP request and runs the output
+    through the decoder.
 
-    - The StandardBackend returns the decoded data from the request,
-      or the structured error information.
-    - The TwistedBackend returns a Deferred for each HttpRequest,
-      whose ultimate result is the decoded data or structured error
-      information (i.e. upon resolution of the Deferred you get the
-      same thing the StandardBackend would return.
+    The supported backends are:
 
+      StandardHttpBackend
+        Returns the decoded data from the request, or the structured
+        error information.
+
+      TwistedHttpBackend
+        Returns a Deferred for each HttpRequest, whose ultimate result
+        is the decoded data or structured error information (i.e. upon
+        resolution of the Deferred you get the same thing the
+        StandardBackend would return.
+
+      RetwistedBackend
+        Behaves like the TwistedBackend, returning a Deferred.  But
+        instead of using twisted web client code it uses the requests
+        library (like StandardHttpBackend), called in a thread.
 
 The abstraction in the Backend is an important component, but it is
 not enough for full abstraction.  The high level methods in AcuControl
