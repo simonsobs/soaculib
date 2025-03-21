@@ -26,11 +26,14 @@ def find_day_of_year(now):
     acu_day = day_of_year + day_part
     return acu_day, day_of_year, seconds
 
-def _initialize_data_dict(dataset):
+def initialize_data_dict(dataset, set_time=True, set_defaults=True):
     """Load server keys from module and populate with sensible starting values.
 
     Args:
         dataset (str): Name of dataset, i.e. 'Datasets.StatusSATPDetailed8100'
+        set_time (bool): If True, include date/time in the dataset.
+        set_defaults (bool): If True, treat this is the main "general" dataset
+             and put in the starting positions.
 
     Returns:
         dict: Data dictionary with all values initialized.
@@ -47,23 +50,26 @@ def _initialize_data_dict(dataset):
         elif val == float:
             data[key] = 0.0
 
-    init_now = dt.datetime.now(TZ)
-    init_time, init_day, init_hms = find_day_of_year(init_now)
-    data['Day'] = init_day
-    data['Time_UDP'] = init_hms
-    data['Year'] = init_now.year
-    data['Time'] = init_time
-    data['Azimuth current position'] = 90.
-    data['Raw Azimuth'] = 90.
-    data['Corrected Azimuth'] = 90.
-    data['Elevation current position'] = 90.
-    data['Raw Elevation'] = 90.
-    data['Corrected Elevation'] = 90.
-    data['Boresight current position'] = 10.
-    data['Raw Boresight'] = 10.
-    data['Corrected Boresight'] = 10.
+    if set_time:
+        init_now = dt.datetime.now(TZ)
+        init_time, init_day, init_hms = find_day_of_year(init_now)
+        data['Day'] = init_day
+        data['Time_UDP'] = init_hms
+        data['Year'] = init_now.year
+        data['Time'] = init_time
 
-    data['ACU in remote mode'] = True
+    if set_defaults:
+        data['Azimuth current position'] = 90.
+        data['Raw Azimuth'] = 90.
+        data['Corrected Azimuth'] = 90.
+        data['Elevation current position'] = 90.
+        data['Raw Elevation'] = 90.
+        data['Corrected Elevation'] = 90.
+        data['Boresight current position'] = 10.
+        data['Raw Boresight'] = 10.
+        data['Corrected Boresight'] = 10.
+
+        data['ACU in remote mode'] = True
 
     return data
 
@@ -83,7 +89,7 @@ class DataMaster:
 
     """
     def __init__(self, dataset):
-        self.data = _initialize_data_dict(dataset)
+        self.data = initialize_data_dict(dataset)
         self.queue = self._initialize_queue()
         self.running = False
 
@@ -156,19 +162,23 @@ class DataMaster:
             'Elevation': {
                 'target': None,
                 'speed': 6.,
-                },
+            },
+            'Boresight': {
+                'target': None,
+                'speed': 1.,
+            },
         }
 
         while True:
             now = time.time()
-            active = False
+            active_axes = []
             for axis, data in all_data.items():
                 if self.data[f'{axis} mode'] != 'Preset':
                     # Clear the target on mode transition to make sure
                     # you repopulate state.
                     data['target'] = None
                     continue
-                active = True
+                active_axes.append(axis)
 
                 # Move towards the target position.
                 current_pos = self.data[f'Raw {axis}']
@@ -190,19 +200,31 @@ class DataMaster:
                         data['vel'] = 0.
                     else:
                         data['pos'] = data['start_pos'] + data['vel'] * (now - data['start_time'])
-            if active:
+
+            if len(active_axes):
                 self.update_timestamp()
-                self.update_positions(new_az=all_data['Azimuth'].get('pos'),
-                                      new_el=all_data['Elevation'].get('pos'))
-                v_az = all_data['Azimuth'].get('vel', 0.)
-                v_el = all_data['Elevation'].get('vel', 0.)
-                self.update_data({
-                    'Azimuth Current 1': v_az * (0.5 + 0.01 * np.random.random()),
-                    'Azimuth Current 2': v_az * (0.5 + 0.01 * np.random.random()),
-                    'Elevation Current 1': v_el * (0.5 + 0.01 * np.random.random()),
-                    'Azimuth current velocity': v_az,
-                    'Elevation current velocity': v_el,
-                })
+                _up_pos = {}
+                _up_dat = {}
+                if 'Azimuth' in active_axes:
+                    _up_pos['new_az'] = all_data['Azimuth'].get('pos')
+                    v_az = all_data['Azimuth'].get('vel', 0.)
+                    _up_dat.update({
+                        'Azimuth Current 1': v_az * (0.5 + 0.01 * np.random.random()),
+                        'Azimuth Current 2': v_az * (0.5 + 0.01 * np.random.random()),
+                        'Azimuth current velocity': v_az,
+                    })
+                if 'Elevation' in active_axes:
+                    _up_pos['new_el'] = all_data['Elevation'].get('pos')
+                    v_el = all_data['Elevation'].get('vel', 0.)
+                    _up_dat.update({
+                        'Elevation Current 1': v_el * (0.5 + 0.01 * np.random.random()),
+                        'Elevation current velocity': v_el,
+                    })
+                if 'Boresight' in active_axes:
+                    _up_pos['new_bs'] = all_data['Boresight'].get('pos')
+
+                self.update_positions(**_up_pos)
+                self.update_data(_up_dat)
                 time.sleep(0.001)
 
             else:
@@ -220,40 +242,18 @@ class DataMaster:
             self.data['Elevation commanded position'] = new_el
         return True
 
+    def preset_bs_motion(self, new_bs):
+        self.data['Boresight commanded position'] = new_bs
+
     def change_mode(self, axes=[], modes=[]):
         if len(axes) != len(modes):
             return
         for i in range(len(axes)):
             self.data[axes[i] + " mode"] = modes[i]
-
-    def preset_bs_motion(self, new_bs):
-        current_bs = self.data['Raw Boresight']
-        if current_bs > new_bs:
-            bsvel = -6.0
-        elif current_bs < new_bs:
-            bsvel = 6.0
-        else:
-            bsvel = 0.0
-        current_time = self.data['Time_UDP']
-        if bsvel != 0.0:
-            elapsed_time_bs = abs((new_bs - current_bs) / bsvel)
-        else:
-            elapsed_time_bs = 1.
-        endtime_bs = current_time + elapsed_time_bs
-        bss = np.linspace(current_bs, new_bs, num=50)
-        bstimes = np.linspace(current_time, endtime_bs, num=50)
-        bscurve = CubicSpline(bstimes, bss)
-        nowtimestamp = current_time
-        while nowtimestamp < endtime_bs:
-            self.update_timestamp()
-            self.update_positions(
-                self.data['Raw Azimuth'],
-                self.data['Raw Elevation'],
-                float(
-                    bscurve(nowtimestamp)))
-            nowtimestamp = self.data['Time_UDP']
-        self.update_timestamp()
-        self.update_positions(self.data['Raw Azimuth'], self.data['Raw Elevation'], new_bs)
+            if modes[i] == 'Stop':
+                self.data[axes[i] + " brakes released"] = False
+            elif modes[i] == 'Preset':
+                self.data[axes[i] + " brakes released"] = True
 
     @staticmethod
     def _calculate_udp_time(line):
@@ -436,11 +436,16 @@ class DataMaster:
             # apply our interpolation and update the self.data object's
             # positions and timestamps within the time the fit is valid for
             while nowtime < valid_until:
+                ptrack = [m == 'ProgramTrack' for m in
+                          [self.data['Azimuth mode'], self.data['Elevation mode']]]
                 try:
-                    newaz = float(azfit(nowtime))
-                    newel = float(elfit(nowtime))
-                    self.update_positions(newaz, newel, self.data['Raw Boresight'])
-                    self.update_data('Azimuth current velocity', float(velfit(nowtime)))
+                    newaz, newel = None, None
+                    if ptrack[0]:
+                        newaz = float(azfit(nowtime))
+                        self.update_data('Azimuth current velocity', float(velfit(nowtime)))
+                    if ptrack[1] == 'ProgramTrack':
+                        newel = float(elfit(nowtime))
+                    self.update_positions(new_az=newaz, new_el=newel)
                     self.update_timestamp()
                     nowtime = self.data['Time_UDP']
                 except ValueError:
