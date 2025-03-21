@@ -24,7 +24,7 @@ To setup, first build the docker image::
     $ docker build -t soaculib .
 
 Then you should be able to launch a simulator using the
-``docker-compose.yaml`` in the simulator directory::
+``compose.yaml`` in the simulator directory::
 
     $ cd simulator/
     $ docker compose up
