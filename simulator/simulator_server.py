@@ -43,8 +43,11 @@ def get_data():
         data = satp.values()
         SkyAxes = {'azimuth': {'Mode': data['Azimuth mode']},
                    'elevation': {'Mode': data['Elevation mode']},
-                   'boresight': {'Mode': data['Boresight mode']},  # deprecated
-                   'polarisation': {'Mode': data['Boresight mode']}}
+                   # The boresight mode (SATP) / corotator mode (LAT)
+                   # are queried throught the common axis
+                   # "Polarisation".
+                   'polarisation': {'Mode': data['Boresight mode']},
+                   }
         axis = tokens[2]
         data = SkyAxes[axis]
 
