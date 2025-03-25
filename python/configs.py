@@ -56,6 +56,7 @@ def load(config_file=None, update_cache=True):
     for k, v in config.get('devices', {}).items():
         v['_name'] = k
         v['_filename'] = filename
+        v['_datasets'] = config.get('datasets', {}).get(v['platform'], {})
 
     # Process config...
     if update_cache:
