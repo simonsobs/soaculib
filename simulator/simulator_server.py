@@ -23,7 +23,7 @@ def get_data():
         'Not Implemented': identifier
     }
 
-    tokens = identifier.lower().split('.')]
+    tokens = identifier.lower().split('.')
     if tokens[0] == 'datasets':
         if tokens[1] == 'StatusSATPDetailed8100'.lower():
             data = satp.values()
