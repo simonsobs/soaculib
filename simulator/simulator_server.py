@@ -39,7 +39,8 @@ def get_data():
                 'Move Interlock' : False,
             }
 
-    elif tokens[0] == 'skyaxes':
+    elif tokens[:2] == ['antenna', 'skyaxes']:
+        data = satp.values()
         SkyAxes = {'azimuth': {'Mode': data['Azimuth mode']},
                    'elevation': {'Mode': data['Elevation mode']},
                    'boresight': {'Mode': data['Boresight mode']},  # deprecated
