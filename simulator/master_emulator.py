@@ -165,14 +165,14 @@ class DataMaster:
 
         while True:
             now = time.time()
-            active = False
+            active_axes = []
             for axis, data in all_data.items():
                 if self.data[f'{axis} mode'] != 'Preset':
                     # Clear the target on mode transition to make sure
                     # you repopulate state.
                     data['target'] = None
                     continue
-                active = True
+                active_axes.append(axis)
 
                 # Move towards the target position.
                 current_pos = self.data[f'Raw {axis}']
@@ -194,20 +194,31 @@ class DataMaster:
                         data['vel'] = 0.
                     else:
                         data['pos'] = data['start_pos'] + data['vel'] * (now - data['start_time'])
-            if active:
+
+            if len(active_axes):
                 self.update_timestamp()
-                self.update_positions(new_az=all_data['Azimuth'].get('pos'),
-                                      new_el=all_data['Elevation'].get('pos'),
-                                      new_bs=all_data['Boresight'].get('pos'))
-                v_az = all_data['Azimuth'].get('vel', 0.)
-                v_el = all_data['Elevation'].get('vel', 0.)
-                self.update_data({
-                    'Azimuth Current 1': v_az * (0.5 + 0.01 * np.random.random()),
-                    'Azimuth Current 2': v_az * (0.5 + 0.01 * np.random.random()),
-                    'Elevation Current 1': v_el * (0.5 + 0.01 * np.random.random()),
-                    'Azimuth current velocity': v_az,
-                    'Elevation current velocity': v_el,
-                })
+                _up_pos = {}
+                _up_dat = {}
+                if 'Azimuth' in active_axes:
+                    _up_pos['new_az'] = all_data['Azimuth'].get('pos')
+                    v_az = all_data['Azimuth'].get('vel', 0.)
+                    _up_dat.update({
+                        'Azimuth Current 1': v_az * (0.5 + 0.01 * np.random.random()),
+                        'Azimuth Current 2': v_az * (0.5 + 0.01 * np.random.random()),
+                        'Azimuth current velocity': v_az,
+                    })
+                if 'Elevation' in active_axes:
+                    _up_pos['new_el'] = all_data['Elevation'].get('pos')
+                    v_el = all_data['Elevation'].get('vel', 0.)
+                    _up_dat.update({
+                        'Elevation Current 1': v_el * (0.5 + 0.01 * np.random.random()),
+                        'Elevation current velocity': v_el,
+                    })
+                if 'Boresight' in active_axes:
+                    _up_pos['new_bs'] = all_data['Boresight'].get('pos')
+
+                self.update_positions(**_up_pos)
+                self.update_data(_up_dat)
                 time.sleep(0.001)
 
             else:
