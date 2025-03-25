@@ -425,6 +425,14 @@ status_fields = {
                 'Co-Rotator immobile' : 'Corotator_immobile',
                 'Co-Rotator overcurrent motor 1' : 'Corotator_motor1_overcurrent',
                 },
+            'shutter': {
+                'Shutter Closed': 'Shutter_closed',
+                'Shutter Moving': 'Shutter_moving',
+                'Shutter Open': 'Shutter_open',
+                'Shutter Timeout': 'Shutter_timeout',
+                'Shutter Failure': 'Shutter_failure',
+                'Move Interlock': 'Shutter_interlock',
+                },
             },
         },
     }
