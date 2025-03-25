@@ -15,23 +15,39 @@ app = Flask(__name__)
 
 @app.route("/Values", methods=["GET"])
 def get_data():
-    data = satp.values()
     identifier = request.args.get('identifier')
     form = request.args.get('format')
-    if identifier.lower() == 'DataSets.StatusSATPDetailed8100'.lower():
-        if form == 'JSON':
+    assert form == 'JSON'
+
+    data = {
+        'Not Implemented': identifier
+    }
+
+    tokens = identifier.lower().split('.')]
+    if tokens[0] == 'datasets':
+        if tokens[1] == 'StatusSATPDetailed8100'.lower():
+            data = satp.values()
             return jsonify(data)
-        else:
-            return jsonify(data)
-    elif identifier.split('.')[1] == 'SkyAxes':
-        SkyAxes = {'Azimuth': {'Mode': data['Azimuth mode']},
-                   'Elevation': {'Mode': data['Elevation mode']},
-                   'Boresight': {'Mode': data['Boresight mode']},  # deprecated
-                   'Polarisation': {'Mode': data['Boresight mode']}}
-        axis = identifier.split('.')[2]
-        return jsonify(SkyAxes[axis])
-    else:
-        return jsonify(data)
+        elif tokens[1] == 'Shutter'.lower():
+            data = {
+                # ACU dataset has a timestamp too...
+                'Shutter Closed' : False,
+                'Shutter Moving' : False,
+                'Shutter Open' : True,
+                'Shutter Timeout' : False,
+                'Shutter Failure' : False,
+                'Move Interlock' : False,
+            }
+
+    elif tokens[0] == 'skyaxes':
+        SkyAxes = {'azimuth': {'Mode': data['Azimuth mode']},
+                   'elevation': {'Mode': data['Elevation mode']},
+                   'boresight': {'Mode': data['Boresight mode']},  # deprecated
+                   'polarisation': {'Mode': data['Boresight mode']}}
+        axis = tokens[2]
+        data = SkyAxes[axis]
+
+    return jsonify(data)
 
 
 @app.route("/Version", methods=["GET"])
@@ -83,6 +99,8 @@ def command():
     elif identifier == "DataSets.Cmd3rdAxisPositionTransfer":
         new_bs = float(param)
         satp.preset_bs_motion(new_bs)
+    elif identifier == "DataSets.Shutter":
+        assert cmd in ['ShutterOpen', 'ShutterClose']
     else:
         return 'identifier not found'
     satp.values()
