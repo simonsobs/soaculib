@@ -1,5 +1,3 @@
-version: '3.7'
-
 # The simulator puts out a huge amount of logs, limit what is saved
 x-log-options:
   &log-options
@@ -13,4 +11,5 @@ services:
     image: soaculib:latest
     <<: *log-options
     network_mode: "host"
-    entrypoint: ["dumb-init", "/usr/local/bin/python", "/app/soaculib/simulator/simulator_server.py"]
+    entrypoint: ["/usr/local/bin/python", "/app/soaculib/simulator/simulator_server.py"]
+    init: true
