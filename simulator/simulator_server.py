@@ -15,6 +15,14 @@ pconfig = {}
 pdata = None
 udp = None
 
+
+# Stuff my ACU says.
+OK_RESPONSES = {
+    'exec': 'OK, Command executed.',
+    'send': 'OK, Command send.',
+}
+
+
 @app.route("/Values", methods=["GET"])
 def get_data():
     identifier = request.args.get('identifier')
@@ -80,6 +88,8 @@ def command():
     identifier = request.args.get('identifier')
     cmd = request.args.get('command')
     param = request.args.get('parameter')
+    ok_val = OK_RESPONSES['exec']
+
     if identifier == "DataSets.CmdAzElPositionTransfer":
         if cmd == 'Set Azimuth Elevation':
             azel = param.split('|')
@@ -98,6 +108,13 @@ def command():
         if cmd == "Clear Stack":
             pdata.clear_queue()
             pdata.update_data('Qty of free program track stack positions', pdata.queue['free'])
+        elif cmd in [
+                "Set Profiler On",
+                "Set Profiler Off",
+                "Set Interpolation Linear",
+                "Set Interpolation Spline",
+        ]:
+            pass  # sure, whatever.
         else:
             return 'command not found'
     elif identifier == "DataSets.CmdModeTransfer":
@@ -111,6 +128,7 @@ def command():
             param = param.split('|')  # Could be 2 or 3 params.
             axes, modes = zip(*zip(all_axes, param))
             pdata.change_mode(axes=axes, modes=modes)
+            ok_val = OK_RESPONSES['send']
         elif cmd == 'Stop':
             pdata.change_mode(axes=all_axes, modes=['Stop'] * len(all_axes))
         else:
@@ -123,7 +141,7 @@ def command():
     else:
         return 'identifier not found'
     pdata.values()
-    return 'OK, Command executed.'
+    return ok_val
 
 
 @app.route("/UploadPtStack", methods=["POST"])

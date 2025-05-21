@@ -247,6 +247,7 @@ class AcuControl:
                 result = modes[0]
         elif isinstance(mode, (Mode, str)):
             mode = Mode(mode)
+            # Note this returns "OK, Command executed." on success.
             result = yield self.http.Command(
                 'DataSets.CmdModeTransfer', 'SetAzElMode', mode.value)
         else:
@@ -257,6 +258,7 @@ class AcuControl:
                 mode = [b if a is None else a
                         for a, b in zip(mode, _mode)]
             modes = [Mode(m).value for m in mode]
+            # Note this returns "OK, Command send." on success.
             result = yield self.http.Command(
                 'DataSets.CmdModeTransfer', 'SetModes', modes)
         self._return(result)
