@@ -83,8 +83,11 @@ HTTP encoding is via GET::
 
 Returns:
 
-- In successful cases returns HTTP code 200 (OK) and text: ``OK,
-  Command executed.``
+- In successful cases returns HTTP code 200 (OK) and text, either:
+
+  - ``OK, Command executed.``  (Most often.)
+  - ``OK, Command send.`` (Sometimes.)
+
 - In some error cases returns HTTP code 200 (OK) and error text:
   ``Failed: Invalid/Unknown value!``
 
