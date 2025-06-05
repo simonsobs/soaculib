@@ -314,7 +314,7 @@ def timecode(t=None):
 
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config-file', '-c', default='acuftp.yaml')
+    parser.add_argument('--config-file', '-c', default=None)
     parser.add_argument('--verbose', '-v', action='store_true')
     s = parser.add_subparsers(dest='action')
 
@@ -340,13 +340,17 @@ def get_parser():
     p.add_argument('--name', help="Choose a specific patch defined "
                    "in the config file (integer index works too).")
 
-    p = s.add_parser('get-file')
+    p = s.add_parser('checksum', help="Checksum a single file from the FTP remote.")
     p.add_argument('path_on_server')
-    p.add_argument('local_dest', default=None)
 
-    p = s.add_parser('put-file')
-    p.add_argument('local_source')
-    p.add_argument('path_on_server')
+    p = s.add_parser('get-file', help="Download a file from FTP remote.")
+    p.add_argument('path_on_server', help="Filename on FTP server.")
+    p.add_argument('local_dest', nargs='?', default=None, help="Local dest dir (end in /) "
+                   "or filename; defaults to ./.")
+
+    p = s.add_parser('put-file', help="Upload a file to the FTP remote.")
+    p.add_argument('local_source', help="Local path to file.")
+    p.add_argument('path_on_server', help="Filename or dir on server.  If dir, end with /.")
     p.add_argument('-f', '--force', action='store_true')
 
     return parser
@@ -357,6 +361,11 @@ def main():
     args = parser.parse_args()
 
     # Load config ...
+    if args.config_file is None:
+        # Load from env?
+        args.config_file = os.getenv('ACUFTP_CONFIG', None)
+        if args.config_file is None:
+            args.config_file = 'acuftp.yaml'
     config = yaml.safe_load(open(args.config_file).read())
 
     # Update ftp cfg...
@@ -527,6 +536,14 @@ def main():
                                'different filename on remote.')
         f = ftpHelper(ftp_cfg)
         f.put(args.local_source, args.path_on_server)
+
+    elif args.action == 'checksum':
+        f = ftpHelper(ftp_cfg)
+        with tempfile.TemporaryDirectory() as tempd:
+            fn = os.path.join(tempd, 'local')
+            f.pull_file(args.path_on_server, fn)
+            checksum = get_md5(fn)
+        print(checksum)
 
     else:
         parser.print_help()
