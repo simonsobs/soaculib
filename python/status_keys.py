@@ -433,6 +433,21 @@ status_fields = {
                 'Shutter Failure': 'Shutter_failure',
                 'Move Interlock': 'Shutter_interlock',
                 },
+            'tilt_fast': {
+                # These are defined in CmdPointingCorrection, and read
+                # out continuously.
+                'Tiltmeter Az correction AZ': 'Tilt_corr_az',
+                'Tiltmeter Az correction EL': 'Tilt_corr_el',
+                },
+            'tilt_slow': {
+                # These are defined in CmdPointingCorrection, and only
+                # update when platform is stable.
+                'Tiltmeter Az Temperature': 'Tilt_raw_temp',
+                'Tiltmeter Az X Raw': 'Tilt_raw_x',
+                'Tiltmeter Az Y Raw': 'Tilt_raw_y',
+                'Tiltmeter Az X Yoke': 'Tilt_deg_x',
+                'Tiltmeter Az Y Yoke': 'Tilt_deg_y',
+                },
             },
         },
     }
