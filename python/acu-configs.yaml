@@ -126,6 +126,15 @@ stream_schemas:
     format: '<iddddddddddd'
     fields: ['Day', 'Time', 'Corrected_Azimuth', 'Corrected_Elevation', 'Raw_Azimuth', 'Raw_Elevation', 'Azimuth_Current_1', 'Azimuth_Current_2', 'Azimuth_Current_3', 'Azimuth_Current_4', 'Elevation_Current_1', 'Elevation_Current_2']
 
+  # Schema for LAT Ext, released 2025-08-04
+  vx2:
+    format: '<iddddddddddd'
+    fields: ['Day', 'Time',
+            'AzDesPos', 'AzActPos', 'AzPosErr',
+            'AzActVel', 'AzVelFfw', 'AzAccFfw',
+            'AzVelMot1', 'AzVelMot2', 'AzVelMot3', 'AzVelMot4']
+
+
 datasets:
   ccat:
     'default_dataset': 'ccat'
