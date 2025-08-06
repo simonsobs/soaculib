@@ -23,8 +23,10 @@ Use environment varirables to alter the behavior of the simulator:
   be suppressed.  Set to 1 for the usual flask logging of all
   requests
 - ``ACUSIM_HTTP_PORT``: port on which to serve; defaults to 8102.
-- ``ACUSIM_HTTP_BROADCAST_PORT``: port on which to broadcast UDP data
+- ``ACUSIM_BROADCAST_PORT``: port on which to broadcast UDP data
   frames; defaults to 10008.
+- ``ACUSIM_BROADCAST_EXT_PORT``: port on which to broadcast UDP ext
+  data frames. If empty or unset, frames will not be produced.
 - ``ACUSIM_PLATFORM``: Either 'ccat' or 'satp'.  Defaults to 'satp'.
   Note that simulation of LAT ('ccat') is currently a bit shallow --
   the main data set is renamed but not altered substantially.

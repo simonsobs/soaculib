@@ -185,7 +185,12 @@ if __name__ == "__main__":
         log.disabled = True
 
     port = int(os.getenv('ACUSIM_HTTP_PORT', 8102))
-    udp_port = int(os.getenv('ACUSIM_HTTP_BROADCAST_PORT', 10008))
+    udp_port = int(os.getenv('ACUSIM_BROADCAST_PORT', 10008))
+    udp_ext_port = os.getenv('ACUSIM_BROADCAST_EXT_PORT', '')
+    if udp_ext_port.strip() == '':
+        udp_ext_port = None
+    else:
+        udp_ext_port = int(udp_ext_port)
 
     platform = os.getenv('ACUSIM_PLATFORM', 'satp')
     if platform in ['satp', '', None]:
@@ -201,12 +206,16 @@ if __name__ == "__main__":
     pdata = DataMaster('Datasets.StatusSATPDetailed8100')
     udp = AcuUdpServer(udp_port, pdata)
 
+    if udp_ext_port:
+        udp_ext = AcuUdpServer(udp_ext_port, pdata, keys='vx2')
+
     # start background thread updating internal ACU data
     pdata.run()
 
     flask_kwargs = {'host': 'localhost', 'port': port, 'debug': False}
-    t1 = Thread(target=app.run, kwargs=flask_kwargs)
-    t2 = Thread(target=udp.run)
+    Thread(target=app.run, kwargs=flask_kwargs).start()
 
-    t1.start()
-    t2.start()
+    Thread(target=udp.run).start()
+
+    if udp_ext_port:
+        Thread(target=udp_ext.run).start()
