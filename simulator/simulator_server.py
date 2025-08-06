@@ -1,12 +1,13 @@
 import time
 import os
 import logging
-import numpy as np
 from threading import Thread
 from flask import Flask, request, jsonify
+from types import GeneratorType
 
 from master_emulator import DataMaster, initialize_data_dict
 from udp_server import AcuUdpServer
+from datasets import datasets
 
 app = Flask(__name__)
 
@@ -74,6 +75,14 @@ def get_data():
                 'Tiltmeter Az X Yoke'           : -0.001938,
                 'Tiltmeter Az Y Yoke'           : 0.001071,
             }
+        elif tokens[1].lower() in datasets:
+            # Copy the dataset in, grabbing from generators.
+            data = {}
+            for k, v in datasets[tokens[1].lower()].items():
+                if isinstance(v, GeneratorType):
+                    v = next(v)
+                data[k] = v
+
     elif tokens[:2] == ['antenna', 'skyaxes']:
         data = pdata.values()
         SkyAxes = {'azimuth': {'Mode': data['Azimuth mode']},
