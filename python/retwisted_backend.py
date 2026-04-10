@@ -33,14 +33,17 @@ class RetwistedHttpBackend(soaculib._Backend):
         self.return_val_func = returnValue
 
         self.session = requests
+        self._get_args = {'timeout': 10.}
+        self._post_args = {'timeout': 10.}
+
         assert not persistent, "persistent=True not supported."
 
     def execute(self, req):
         def _request(req):
             if req.req_type == 'GET':
-                t = self.session.get(req.url, params=req.params)
+                t = self.session.get(req.url, params=req.params, **self._get_args)
             elif req.req_type == 'POST':
-                t = self.session.post(req.url, params=req.params, data=req.data)
+                t = self.session.post(req.url, params=req.params, data=req.data, **self._post_args)
             else:
                 raise ValueError("Unimplemented request type '%s'" % req.req_type)
             # Decode the result.  To imitate TwistedHttpBackend,
