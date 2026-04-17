@@ -10,6 +10,12 @@ from twisted.internet.defer import (
 
 import requests
 
+import threading
+
+def thread_str():
+    pool = reactor.getThreadPool()
+    return f'tpool size={len(pool.threads)},idle={len(pool.waiters)},pthreads={threading.active_count()}'
+
 class RetwistedHttpBackend(soaculib._Backend):
     """This backend returns a Deferred object from the execute() call.
     The final result will be decoded as usual.
@@ -41,9 +47,9 @@ class RetwistedHttpBackend(soaculib._Backend):
     def execute(self, req):
         def _request(req):
             if req.req_type == 'GET':
-                print(req.url, req.params)
+                print(req.url, req.params, thread_str())
                 t = self.session.get(req.url, params=req.params, **self._get_args)
-                print('recd', len(t.text))
+                print('recd', len(t.text), thread_str())
             elif req.req_type == 'POST':
                 t = self.session.post(req.url, params=req.params, data=req.data, **self._post_args)
             else:
