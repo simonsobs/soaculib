@@ -41,7 +41,9 @@ class RetwistedHttpBackend(soaculib._Backend):
     def execute(self, req):
         def _request(req):
             if req.req_type == 'GET':
+                print(req.url, req.params)
                 t = self.session.get(req.url, params=req.params, **self._get_args)
+                print('recd', len(t.text))
             elif req.req_type == 'POST':
                 t = self.session.post(req.url, params=req.params, data=req.data, **self._post_args)
             else:
