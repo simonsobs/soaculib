@@ -27,7 +27,7 @@ class RetwistedHttpBackend_NonPersistent(soaculib._Backend):
 
     """
 
-    def __init__(self, web_agent=None, persistent=False):
+    def __init__(self, web_agent=None, persistent=False, debug=False):
         """Calls requests.get/post, but wrapped in a Deferred.
 
         The persistent mode is not supported here, as that would
@@ -42,15 +42,18 @@ class RetwistedHttpBackend_NonPersistent(soaculib._Backend):
         self.session = requests
         self._get_args = {'timeout': 10.}
         self._post_args = {'timeout': 10.}
+        self._debug = debug
 
         assert not persistent, "persistent=True not supported."
 
     def execute(self, req):
         def _request(req):
             if req.req_type == 'GET':
-                print(req.url, req.params, thread_str())
+                if self._debug:
+                    print(req.url, req.params, thread_str())
                 t = self.session.get(req.url, params=req.params, **self._get_args)
-                print('recd', len(t.text), thread_str())
+                if self._debug:
+                    print('recd', len(t.text), thread_str())
             elif req.req_type == 'POST':
                 t = self.session.post(req.url, params=req.params, data=req.data, **self._post_args)
             else:
@@ -84,7 +87,7 @@ class RetwistedHttpBackend_Persistent(soaculib._Backend):
 
     """
 
-    def __init__(self, web_agent=None, persistent=True):
+    def __init__(self, web_agent=None, persistent=True, debug=False):
         """Calls requests.get/post, but wrapped in a Deferred.
 
         The http requests are issued in a thread, and thus persistent
@@ -102,6 +105,7 @@ class RetwistedHttpBackend_Persistent(soaculib._Backend):
 
         self._get_args = {'timeout': 10.}
         self._post_args = {'timeout': 10.}
+        self._debug = debug
 
         self._q = queue.Queue()
         self._thread = threading.Thread(target=self._http_session_thread)
@@ -118,9 +122,11 @@ class RetwistedHttpBackend_Persistent(soaculib._Backend):
 
         """
         if req.req_type == 'GET':
-            print(req.url, req.params, 'rt2')
+            if self._debug:
+                print(req.url, req.params, 'rt2')
             t = self.session.get(req.url, params=req.params, **self._get_args)
-            print('recd', len(t.text), 'rt2')
+            if self._debug:
+                print('recd', len(t.text), 'rt2')
         elif req.req_type == 'POST':
             t = self.session.post(req.url, params=req.params, data=req.data, **self._post_args)
         else:
