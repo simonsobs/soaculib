@@ -147,7 +147,7 @@ class RetwistedHttpBackend2(soaculib._Backend):
     def execute(self, req):
         d = Deferred()
         self._q.put((req, d))
-        return (yield d)
+        return d
 
     def __call__(self, *args, **kw):
         return self.execute(*args, **kw)
