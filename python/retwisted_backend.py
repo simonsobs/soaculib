@@ -17,7 +17,7 @@ def thread_str():
     pool = reactor.getThreadPool()
     return f'tpool size={len(pool.threads)},idle={len(pool.waiters)},pthreads={threading.active_count()}'
 
-class RetwistedHttpBackend(soaculib._Backend):
+class RetwistedHttpBackend_NonPersistent(soaculib._Backend):
     """This backend returns a Deferred object from the execute() call.
     The final result will be decoded as usual.
 
@@ -70,17 +70,21 @@ class RetwistedHttpBackend(soaculib._Backend):
         reactor.callLater(delay, d.callback, None)
         yield d
 
-class RetwistedHttpBackend2(soaculib._Backend):
+class RetwistedHttpBackend_Persistent(soaculib._Backend):
     """This backend returns a Deferred object from the execute() call.
     The final result will be decoded as usual.
 
     This differs from TwistedHttpBackend in that it uses requests
     library, under the hood, and this seems to be faster in some
-    situations.
+    situations. This implementation (in constrast to NonPersistent)
+    launches its own worker thread, instead of relying on Twisted
+    threadpool, and thus can properly protect a single persistent
+    requests session.  So it supports persistent connection, and
+    that's the default.
 
     """
 
-    def __init__(self, web_agent=None, persistent=False):
+    def __init__(self, web_agent=None, persistent=True):
         """Calls requests.get/post, but wrapped in a Deferred.
 
         The http requests are issued in a thread, and thus persistent
@@ -145,6 +149,8 @@ class RetwistedHttpBackend2(soaculib._Backend):
             reactor.callFromThread(d.callback, decoded_result)
 
     def execute(self, req):
+        if not self._thread.is_alive():
+            raise RuntimeError('RetwistedHttpBackend worker thread has died.')
         d = Deferred()
         self._q.put((req, d))
         return d
@@ -157,3 +163,6 @@ class RetwistedHttpBackend2(soaculib._Backend):
         d = Deferred()
         reactor.callLater(delay, d.callback, None)
         yield d
+
+
+RetwistedHttpBackend = RetwistedHttpBackend_Persistent
