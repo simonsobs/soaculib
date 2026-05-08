@@ -1,4 +1,5 @@
 import time
+import numpy as np
 import os
 import logging
 from threading import Thread
@@ -64,14 +65,16 @@ def get_data():
                 data[f'Co-Rotator {k}'] = vals[f'Boresight {k}']
             return data
         elif tokens[1] == 'CmdPointingCorrection'.lower():
+            zz = np.random.random() * 4
+
             data = {
-                'Tiltmeter Az correction AZ'    : 0.062993,
-                'Tiltmeter Az correction EL'    : -0.001425,
+                'Tiltmeter Az correction AZ'    : 0.062993 + zz / 100,
+                'Tiltmeter Az correction EL'    : -0.001425 + zz/100,
                 'Tiltmeter El correction AZ'    : 0.0,
                 'Tiltmeter El correction EL'    : 0.0,
                 'Tiltmeter Az Temperature'      : 20.1,
-                'Tiltmeter Az X Raw'            : -970.0,
-                'Tiltmeter Az Y Raw'            : -3145.0,
+                'Tiltmeter Az X Raw'            : -970.0 + zz,
+                'Tiltmeter Az Y Raw'            : -3145.0 + zz,
                 'Tiltmeter Az X Yoke'           : -0.001938,
                 'Tiltmeter Az Y Yoke'           : 0.001071,
             }
