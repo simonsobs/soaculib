@@ -8,14 +8,10 @@ from twisted.internet import reactor, threads
 from twisted.internet.defer import (
     inlineCallbacks, Deferred, returnValue)
 
-import requests
-
 import queue
+import requests
 import threading
 
-def thread_str():
-    pool = reactor.getThreadPool()
-    return f'tpool size={len(pool.threads)},idle={len(pool.waiters)},pthreads={threading.active_count()}'
 
 class RetwistedHttpBackend_NonPersistent(soaculib._Backend):
     """This backend returns a Deferred object from the execute() call.
@@ -27,7 +23,7 @@ class RetwistedHttpBackend_NonPersistent(soaculib._Backend):
 
     """
 
-    def __init__(self, web_agent=None, persistent=False, debug=False):
+    def __init__(self, web_agent=None, persistent=False):
         """Calls requests.get/post, but wrapped in a Deferred.
 
         The persistent mode is not supported here, as that would
@@ -42,18 +38,13 @@ class RetwistedHttpBackend_NonPersistent(soaculib._Backend):
         self.session = requests
         self._get_args = {'timeout': 10.}
         self._post_args = {'timeout': 10.}
-        self._debug = debug
 
         assert not persistent, "persistent=True not supported."
 
     def execute(self, req):
         def _request(req):
             if req.req_type == 'GET':
-                if self._debug:
-                    print(req.url, req.params, thread_str())
                 t = self.session.get(req.url, params=req.params, **self._get_args)
-                if self._debug:
-                    print('recd', len(t.text), thread_str())
             elif req.req_type == 'POST':
                 t = self.session.post(req.url, params=req.params, data=req.data, **self._post_args)
             else:
@@ -87,7 +78,7 @@ class RetwistedHttpBackend_Persistent(soaculib._Backend):
 
     """
 
-    def __init__(self, web_agent=None, persistent=True, debug=False):
+    def __init__(self, web_agent=None, persistent=True):
         """Calls requests.get/post, but wrapped in a Deferred.
 
         The http requests are issued in a thread, and thus persistent
@@ -105,7 +96,6 @@ class RetwistedHttpBackend_Persistent(soaculib._Backend):
 
         self._get_args = {'timeout': 10.}
         self._post_args = {'timeout': 10.}
-        self._debug = debug
 
         self._q = queue.Queue()
         self._thread = threading.Thread(target=self._http_session_thread)
@@ -122,11 +112,7 @@ class RetwistedHttpBackend_Persistent(soaculib._Backend):
 
         """
         if req.req_type == 'GET':
-            if self._debug:
-                print(req.url, req.params, 'rt2')
             t = self.session.get(req.url, params=req.params, **self._get_args)
-            if self._debug:
-                print('recd', len(t.text), 'rt2')
         elif req.req_type == 'POST':
             t = self.session.post(req.url, params=req.params, data=req.data, **self._post_args)
         else:
@@ -148,7 +134,6 @@ class RetwistedHttpBackend_Persistent(soaculib._Backend):
                 decoded_result = self._process_req(req)
 
             except Exception as e:
-                print('Exception in get/post/decode:', e)
                 reactor.callFromThread(d.errback, e)
                 continue
 
