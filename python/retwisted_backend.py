@@ -13,64 +13,13 @@ import requests
 import threading
 
 
-class RetwistedHttpBackend_NonPersistent(soaculib._Backend):
+class RetwistedHttpBackend(soaculib._Backend):
     """This backend returns a Deferred object from the execute() call.
     The final result will be decoded as usual.
 
     This differs from TwistedHttpBackend in that it uses requests
     library, under the hood, and this seems to be faster in some
-    situations.
-
-    """
-
-    def __init__(self, web_agent=None, persistent=False):
-        """Calls requests.get/post, but wrapped in a Deferred.
-
-        The persistent mode is not supported here, as that would
-        require queuing requests or otherwise worrying about
-        thread-safety of requests.Session.
-
-        """
-        self.decorator = inlineCallbacks
-        self.api_decorator = inlineCallbacks
-        self.return_val_func = returnValue
-
-        self.session = requests
-        self._get_args = {'timeout': 10.}
-        self._post_args = {'timeout': 10.}
-
-        assert not persistent, "persistent=True not supported."
-
-    def execute(self, req):
-        def _request(req):
-            if req.req_type == 'GET':
-                t = self.session.get(req.url, params=req.params, **self._get_args)
-            elif req.req_type == 'POST':
-                t = self.session.post(req.url, params=req.params, data=req.data, **self._post_args)
-            else:
-                raise ValueError("Unimplemented request type '%s'" % req.req_type)
-            # Decode the result.  To imitate TwistedHttpBackend,
-            # convert response from str to bytes.
-            return req.decoder(t.status_code, bytes(t.text, 'utf8'))
-
-        return threads.deferToThread(_request, req)
-
-    def __call__(self, *args, **kw):
-        return self.execute(*args, **kw)
-
-    @inlineCallbacks
-    def sleep(self, delay):
-        d = Deferred()
-        reactor.callLater(delay, d.callback, None)
-        yield d
-
-class RetwistedHttpBackend_Persistent(soaculib._Backend):
-    """This backend returns a Deferred object from the execute() call.
-    The final result will be decoded as usual.
-
-    This differs from TwistedHttpBackend in that it uses requests
-    library, under the hood, and this seems to be faster in some
-    situations. This implementation (in constrast to NonPersistent)
+    situations.  This implementation (in contrast to _NonPersistent)
     launches its own worker thread, instead of relying on Twisted
     threadpool, and thus can properly protect a single persistent
     requests session.  So it supports persistent connection, and
@@ -156,4 +105,56 @@ class RetwistedHttpBackend_Persistent(soaculib._Backend):
         yield d
 
 
-RetwistedHttpBackend = RetwistedHttpBackend_Persistent
+class RetwistedHttpBackend_NonPersistent(soaculib._Backend):
+    """This backend returns a Deferred object from the execute() call.
+    The final result will be decoded as usual.
+
+    This differs from TwistedHttpBackend in that it uses requests
+    library, under the hood, and this seems to be faster in some
+    situations.
+
+    This was the original implementation of RetwistedHttpBackend; it
+    remains here temporarily to debug trouble with the new version.
+
+    """
+
+    def __init__(self, web_agent=None, persistent=False):
+        """Calls requests.get/post, but wrapped in a Deferred.
+
+        The persistent mode is not supported here, as that would
+        require queuing requests or otherwise worrying about
+        thread-safety of requests.Session.
+
+        """
+        self.decorator = inlineCallbacks
+        self.api_decorator = inlineCallbacks
+        self.return_val_func = returnValue
+
+        self.session = requests
+        self._get_args = {'timeout': 10.}
+        self._post_args = {'timeout': 10.}
+
+        assert not persistent, "persistent=True not supported."
+
+    def execute(self, req):
+        def _request(req):
+            if req.req_type == 'GET':
+                t = self.session.get(req.url, params=req.params, **self._get_args)
+            elif req.req_type == 'POST':
+                t = self.session.post(req.url, params=req.params, data=req.data, **self._post_args)
+            else:
+                raise ValueError("Unimplemented request type '%s'" % req.req_type)
+            # Decode the result.  To imitate TwistedHttpBackend,
+            # convert response from str to bytes.
+            return req.decoder(t.status_code, bytes(t.text, 'utf8'))
+
+        return threads.deferToThread(_request, req)
+
+    def __call__(self, *args, **kw):
+        return self.execute(*args, **kw)
+
+    @inlineCallbacks
+    def sleep(self, delay):
+        d = Deferred()
+        reactor.callLater(delay, d.callback, None)
+        yield d
