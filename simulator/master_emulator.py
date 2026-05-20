@@ -169,6 +169,8 @@ class DataMaster:
             },
         }
 
+        startup_delay = 0. # Use to partially simulate warning horn delay.
+
         while True:
             now = time.time()
             active_axes = []
@@ -188,18 +190,22 @@ class DataMaster:
                     speed = data['speed']
                     data.update({
                         'target': new_target,
-                        'start_time': now,
+                        'start_time': (now + startup_delay),
                         'start_pos': current_pos,
-                        'end_time': abs(new_target - current_pos) / speed + now,
-                        'vel': np.sign(new_target - current_pos) * speed,
+                        'end_time': abs(new_target - current_pos) / speed + (now + startup_delay),
+                        '_vel': np.sign(new_target - current_pos) * speed,
                     })
 
                 if current_pos != data['target']:
                     if now >= data['end_time']:
                         data['pos'] = data['target']
                         data['vel'] = 0.
-                    else:
+                    elif now >= data['start_time']:
                         data['pos'] = data['start_pos'] + data['vel'] * (now - data['start_time'])
+                        data['vel'] = data['_vel']
+                    else:
+                        data['pos'] = data['start_pos']
+                        data['vel'] = 0.
 
             if len(active_axes):
                 self.update_timestamp()
