@@ -1,5 +1,4 @@
 import soaculib as aculib
-import soaculib.status_keys as status_keys
 import time
 import datetime
 import calendar
@@ -57,6 +56,8 @@ def check_status_keys(acu, fallback_dataset='DataSets.StatusGeneral8100'):
         statkey_check = False
         missing_keys, extra_keys = [], []
     else:
+        # From socs.agents.acu import status_keys? Untested.
+        raise RuntimeError("Fixme! status_keys has been moved into ACU Agent codebase")
         key_list = status_keys.allkeys(platform)
         key_list.sort()
         missing_keys = []
