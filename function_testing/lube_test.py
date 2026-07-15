@@ -1,5 +1,4 @@
 import soaculib as aculib
-import soaculib.status_keys as status_keys
 import time
 import datetime
 import calendar

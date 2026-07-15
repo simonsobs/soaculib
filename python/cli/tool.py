@@ -17,7 +17,6 @@ import yaml
 
 
 import soaculib as aculib
-from soaculib.status_keys import status_fields
 
 def get_parser():
     parser = argparse.ArgumentParser(usage=USAGE)
@@ -309,6 +308,8 @@ def main(args=None):
                     print('#  error requesting dataset "%s"!' % n)
                     continue
                 if args.reconcile:
+                    # From socs.agents.acu.status_keys import status_fields? Untested.
+                    raise RuntimeError("Fixme! status_fields has been moved into ACU Agent codebase.")
                     internal_map = {}
                     for group, items in status_fields[platform]['status_fields'].items():
                         for field, alias in items.items():
