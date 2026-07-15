@@ -97,5 +97,21 @@ datasets = {
         "Fan Yoke Traverse M Servo Space on": False,
         "Fan Yoke Traverse A Electronic Space on": False,
         "Heater on": False,
-    }
+    },
+    'powerdistribution':
+    {
+        'Q2006 DAPS 1': True,
+        'Q2007 DAPS 2': False,
+        'Q2008 DAPS 3': True,
+        'Q2009 DAPS 4': False,
+        'Q2010 DAPS 5': True,
+        'Q2011 DAPS 6': False,
+        'Q2012 DAPS 7': True,
+        'Q2013 DAPS 8': False,
+        'Main Lighting': True,
+        'Lights 42 Process Space': False,
+        'Lights 44 Electronic Space': False,
+        'Lights 45 Instrument Space 1': False,
+        'Lights 46 Instrument Space 2': False,
+    },
 }
