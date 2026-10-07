@@ -201,11 +201,11 @@ class DataMaster:
                         data['pos'] = data['target']
                         data['vel'] = 0.
                     elif now >= data['start_time']:
-                        data['pos'] = data['start_pos'] + data['vel'] * (now - data['start_time'])
                         data['vel'] = data['_vel']
+                        data['pos'] = data['start_pos'] + data['vel'] * (now - data['start_time'])
                     else:
-                        data['pos'] = data['start_pos']
                         data['vel'] = 0.
+                        data['pos'] = data['start_pos']
 
             if len(active_axes):
                 self.update_timestamp()
@@ -376,8 +376,9 @@ class DataMaster:
         return velfit
 
     def run_track(self):
-        modes = [self.data['Azimuth mode'], self.data['Elevation mode']]
-        if modes[0] != 'ProgramTrack':
+        ptrack = [self.data[k] == 'ProgramTrack' for k in
+                  ['Azimuth mode', 'Elevation mode']]
+        if not any(ptrack):
             return False
 
         self.running = True
@@ -449,7 +450,7 @@ class DataMaster:
                     if ptrack[0]:
                         newaz = float(azfit(nowtime))
                         self.update_data('Azimuth current velocity', float(velfit(nowtime)))
-                    if ptrack[1] == 'ProgramTrack':
+                    if ptrack[1]:
                         newel = float(elfit(nowtime))
                     self.update_positions(new_az=newaz, new_el=newel)
                     self.update_timestamp()
